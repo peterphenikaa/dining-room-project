@@ -22,7 +22,6 @@ AppDataSource.initialize()
 
         app.use("/api/rooms", diningRoomRoutes);
 
-        // Trạm thu gom rác trung tâm: BẮT BUỘC phải nằm dưới tất cả các app.use khác!
         app.use(errorHandler);
 
         app.listen(PORT, () => {
