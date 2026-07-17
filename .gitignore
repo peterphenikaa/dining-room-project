@@ -1,0 +1,5 @@
+node_modules/
+dist/
+Bao_Cao_Tien_Do.docx
+.env
+.DS_Store
