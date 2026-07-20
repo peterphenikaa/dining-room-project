@@ -4,28 +4,28 @@ import { DiningRoom } from "../entity/DiningRoom";
 const roomRepository = AppDataSource.getRepository(DiningRoom);
 
 export class DiningRoomService {
-    static async createRoom(data: { name: string; area_size: number; style?: string }) {
+    static async create(data: { name: string; area_size: number; style?: string }) {
         const newRoom = roomRepository.create(data);
         return await roomRepository.save(newRoom);
     }
 
-    static async getAllRooms() {
+    static async getAll() {
         return await roomRepository.find();
     }
 
-    static async getRoomById(id: string) {
+    static async getById(id: string) {
         return await roomRepository.findOneBy({ id });
     }
 
-    static async updateRoom(id: string, data: { name?: string; area_size?: number; style?: string }) {
-        const room = await this.getRoomById(id);
+    static async update(id: string, data: { name?: string; area_size?: number; style?: string }) {
+        const room = await this.getById(id);
         if (!room) return null;
 
         roomRepository.merge(room, data);
         return await roomRepository.save(room);
     }
 
-    static async deleteRoom(id: string) {
+    static async delete(id: string) {
         const result = await roomRepository.delete(id);
         return result.affected !== 0;
     }

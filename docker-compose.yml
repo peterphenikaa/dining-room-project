@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -32,6 +30,21 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: mysql_phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: dbuser
+      PMA_PASSWORD: dbpassword
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      - db
 
 volumes:
   db_data:

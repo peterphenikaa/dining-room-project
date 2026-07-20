@@ -4,6 +4,10 @@ import cors from "cors";
 import { AppDataSource } from "./data-source";
 
 import diningRoomRoutes from "./routes/diningRoomRoutes";
+import diningTableRoutes from "./routes/diningTableRoutes";
+import diningChairRoutes from "./routes/diningChairRoutes";
+import diningAccessoryRoutes from "./routes/diningAccessoryRoutes";
+import diningCabinetRoutes from "./routes/diningCabinetRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
@@ -21,6 +25,10 @@ AppDataSource.initialize()
         });
 
         app.use("/api/rooms", diningRoomRoutes);
+        app.use("/api/tables", diningTableRoutes);
+        app.use("/api/chairs", diningChairRoutes);
+        app.use("/api/accessories", diningAccessoryRoutes);
+        app.use("/api/cabinets", diningCabinetRoutes);
 
         app.use(errorHandler);
 

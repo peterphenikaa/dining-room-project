@@ -1,0 +1,58 @@
+import { Request, Response } from "express";
+import { DiningAccessoryService } from "../services/DiningAccessoryService";
+import { AppError } from "../utils/AppError";
+import { SuccessResponse } from "../utils/SuccessResponse";
+
+export const createAccessory = async (req: Request, res: Response) => {
+    const { name, type, diningTableId } = req.body;
+
+    if (!name || !type || !diningTableId) {
+        throw new AppError("name, type và diningTableId là bắt buộc", 400);
+    }
+
+    const newAccessory = await DiningAccessoryService.create({
+        name,
+        type,
+        diningTableId,
+    });
+
+    return SuccessResponse(res, 201, "Tạo phụ kiện thành công!", newAccessory);
+};
+
+export const getAllAccessories = async (req: Request, res: Response) => {
+    const accessories = await DiningAccessoryService.getAll();
+    return SuccessResponse(res, 200, "Lấy danh sách phụ kiện thành công", accessories);
+};
+
+export const getAccessoryById = async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const accessory = await DiningAccessoryService.getById(id);
+
+    if (!accessory) {
+        throw new AppError("Không tìm thấy phụ kiện", 404);
+    }
+
+    return SuccessResponse(res, 200, "Lấy dữ liệu thành công", accessory);
+};
+
+export const updateAccessory = async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const updatedAccessory = await DiningAccessoryService.update(id, req.body);
+
+    if (!updatedAccessory) {
+        throw new AppError("Không tìm thấy phụ kiện để sửa", 404);
+    }
+
+    return SuccessResponse(res, 200, "Cập nhật thành công!", updatedAccessory);
+};
+
+export const deleteAccessory = async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const isDeleted = await DiningAccessoryService.delete(id);
+
+    if (!isDeleted) {
+        throw new AppError("Không tìm thấy phụ kiện để xóa", 404);
+    }
+
+    return SuccessResponse(res, 200, "Đã xóa phụ kiện thành công!", null);
+};
