@@ -3,11 +3,13 @@ services:
     image: mysql:8.0
     container_name: mysql_db
     restart: always
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: phongan_db
-      MYSQL_USER: dbuser
-      MYSQL_PASSWORD: dbpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -19,12 +21,8 @@ services:
     restart: always
     ports:
       - "3002:3002"
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_USER: dbuser
-      DB_PASS: dbpassword
-      DB_NAME: phongan_db
+    env_file:
+      - .env
     depends_on:
       - db
     volumes:
@@ -37,11 +35,13 @@ services:
     restart: always
     ports:
       - "8081:80"
+    env_file:
+      - .env
     environment:
       PMA_HOST: db
       PMA_PORT: 3306
-      PMA_USER: dbuser
-      PMA_PASSWORD: dbpassword
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
       UPLOAD_LIMIT: 64M
     depends_on:
       - db

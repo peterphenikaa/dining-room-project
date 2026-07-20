@@ -5,6 +5,7 @@ import { DiningTable } from "./entity/DiningTable"
 import { DiningChair } from "./entity/DiningChair"
 import { DiningCabinet } from "./entity/DiningCabinet"
 import { DiningAccessory } from "./entity/DiningAccessory"
+import { User } from "./entity/User"
 
 export const AppDataSource = new DataSource({
     type: "mysql",
@@ -15,7 +16,7 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME || "phongan_db",
     synchronize: false, 
     logging: false,
-    entities: [DiningRoom, DiningTable, DiningChair, DiningCabinet, DiningAccessory],
+    entities: [DiningRoom, DiningTable, DiningChair, DiningCabinet, DiningAccessory, User],
     migrations: [__dirname + "/migration/**/*{.ts,.js}"],
     subscribers: [],
 })

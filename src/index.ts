@@ -1,8 +1,11 @@
+import "dotenv/config";
 import "reflect-metadata";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
 
+import authRoutes from "./routes/authRoutes";
 import diningRoomRoutes from "./routes/diningRoomRoutes";
 import diningTableRoutes from "./routes/diningTableRoutes";
 import diningChairRoutes from "./routes/diningChairRoutes";
@@ -11,8 +14,16 @@ import diningCabinetRoutes from "./routes/diningCabinetRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
-app.use(cors());
+
+const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+app.use(
+    cors({
+        origin: corsOrigin,
+        credentials: true,
+    })
+);
 app.use(express.json());
+app.use(cookieParser());
 
 const PORT = process.env.PORT || 3002;
 
@@ -24,6 +35,7 @@ AppDataSource.initialize()
             res.json({ message: "API Quản lý Phòng ăn và Bàn ăn" });
         });
 
+        app.use("/api/auth", authRoutes);
         app.use("/api/rooms", diningRoomRoutes);
         app.use("/api/tables", diningTableRoutes);
         app.use("/api/chairs", diningChairRoutes);
