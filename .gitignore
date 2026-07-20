@@ -4,3 +4,12 @@ doc/
 .env
 .DS_Store
 TODO_API.md
+
+# Báo cáo tiến độ (local, dùng sau)
+generate_report_day2.py
+report.txt
+report_day2.txt
+gen_out.txt
+
+# Automation test (local, không commit)
+tests/
