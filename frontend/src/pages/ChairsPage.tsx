@@ -104,7 +104,6 @@ export function ChairsPage() {
             <header className="page-header">
                 <div>
                     <h1>Ghế ăn</h1>
-                    <p className="muted">/api/chairs — có quantity</p>
                 </div>
                 {canWrite && (
                     <button type="button" className="secondary" onClick={startCreate}>

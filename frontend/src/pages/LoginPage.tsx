@@ -29,7 +29,6 @@ export function LoginPage() {
     return (
         <div className="card">
             <h1>Đăng nhập</h1>
-            <p className="muted">Cookie httpOnly — axios withCredentials</p>
 
             <form onSubmit={handleSubmit} className="form">
                 <label>

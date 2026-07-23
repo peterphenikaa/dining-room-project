@@ -101,7 +101,6 @@ export function AccessoriesPage() {
             <header className="page-header">
                 <div>
                     <h1>Phụ kiện bàn ăn</h1>
-                    <p className="muted">/api/accessories — có quantity</p>
                 </div>
                 {canWrite && (
                     <button type="button" className="secondary" onClick={startCreate}>

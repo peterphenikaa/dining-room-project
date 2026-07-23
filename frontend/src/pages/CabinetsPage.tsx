@@ -104,7 +104,6 @@ export function CabinetsPage() {
             <header className="page-header">
                 <div>
                     <h1>Tủ phòng ăn</h1>
-                    <p className="muted">/api/cabinets — có quantity</p>
                 </div>
                 {canWrite && (
                     <button type="button" className="secondary" onClick={startCreate}>

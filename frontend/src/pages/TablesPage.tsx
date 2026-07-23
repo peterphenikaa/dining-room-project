@@ -107,7 +107,6 @@ export function TablesPage() {
             <header className="page-header">
                 <div>
                     <h1>Bàn ăn</h1>
-                    <p className="muted">/api/tables — có quantity</p>
                 </div>
                 {canWrite && (
                     <button type="button" className="secondary" onClick={startCreate}>

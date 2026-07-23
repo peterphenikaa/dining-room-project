@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const LINKS = [
-    { to: "/rooms", title: "Phòng ăn", desc: "CRUD /api/rooms" },
-    { to: "/tables", title: "Bàn ăn", desc: "CRUD /api/tables + quantity" },
-    { to: "/cabinets", title: "Tủ", desc: "CRUD /api/cabinets + quantity" },
-    { to: "/chairs", title: "Ghế", desc: "CRUD /api/chairs + quantity" },
-    { to: "/accessories", title: "Phụ kiện", desc: "CRUD /api/accessories + quantity" },
+    { to: "/rooms", title: "Phòng ăn", desc: "Quản lý phòng ăn" },
+    { to: "/tables", title: "Bàn ăn", desc: "Quản lý bàn ăn" },
+    { to: "/cabinets", title: "Tủ", desc: "Quản lý tủ" },
+    { to: "/chairs", title: "Ghế", desc: "Quản lý ghế" },
+    { to: "/accessories", title: "Phụ kiện", desc: "Quản lý phụ kiện" },
 ];
 
 export function DashboardPage() {
@@ -23,12 +23,6 @@ export function DashboardPage() {
                     </p>
                 </div>
             </header>
-
-            <p className="hint">
-                {user?.role === "admin"
-                    ? "Admin: tạo / sửa / xóa đủ 5 entity."
-                    : "User: chỉ xem danh sách (GET). Nút ghi bị ẩn; API ghi sẽ 403."}
-            </p>
 
             <div className="link-grid">
                 {LINKS.map((item) => (

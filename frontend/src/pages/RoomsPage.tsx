@@ -85,7 +85,6 @@ export function RoomsPage() {
             <header className="page-header">
                 <div>
                     <h1>Phòng ăn</h1>
-                    <p className="muted">/api/rooms</p>
                 </div>
                 {canWrite && (
                     <button type="button" className="secondary" onClick={startCreate}>
