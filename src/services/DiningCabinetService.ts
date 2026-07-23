@@ -11,6 +11,7 @@ export class DiningCabinetService {
         name: string;
         material: string;
         dimensions?: string;
+        quantity: number;
         diningRoomId: string;
     }) {
         const room = await roomRepository.findOneBy({ id: data.diningRoomId });
@@ -20,6 +21,7 @@ export class DiningCabinetService {
             name: data.name,
             material: data.material,
             dimensions: data.dimensions,
+            quantity: data.quantity,
             diningRoom: room,
         });
 
@@ -43,6 +45,7 @@ export class DiningCabinetService {
             name?: string;
             material?: string;
             dimensions?: string;
+            quantity?: number;
             diningRoomId?: string;
         }
     ) {

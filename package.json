@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "build": "tsc",
+    "migration:run": "tsc && typeorm migration:run -d dist/data-source.js",
+    "seed:dining": "tsc && node dist/seed/seedDiningData.js"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",

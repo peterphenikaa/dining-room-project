@@ -13,7 +13,11 @@ export class DiningCabinet {
     material: string
 
     @Column({ nullable: true })
-    dimensions: string 
+    dimensions: string
+
+    /** Số lượng tủ cùng loại trong phòng */
+    @Column({ type: "int", default: 1 })
+    quantity: number
 
     @ManyToOne(() => DiningRoom, (room) => room.cabinets, { onDelete: "CASCADE" })
     diningRoom: DiningRoom

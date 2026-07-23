@@ -10,6 +10,7 @@ export class DiningAccessoryService {
     static async create(data: {
         name: string;
         type: string;
+        quantity: number;
         diningTableId: string;
     }) {
         const table = await tableRepository.findOneBy({ id: data.diningTableId });
@@ -18,6 +19,7 @@ export class DiningAccessoryService {
         const newAccessory = accessoryRepository.create({
             name: data.name,
             type: data.type,
+            quantity: data.quantity,
             diningTable: table,
         });
 
@@ -40,6 +42,7 @@ export class DiningAccessoryService {
         data: {
             name?: string;
             type?: string;
+            quantity?: number;
             diningTableId?: string;
         }
     ) {

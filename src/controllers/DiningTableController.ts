@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import { DiningTableService } from "../services/DiningTableService";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
+import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createTable = async (req: Request, res: Response) => {
-    const { name, material, shape, dimensions, diningRoomId } = req.body;
+    const { name, material, shape, dimensions, quantity, diningRoomId } = req.body;
 
     if (!name || !material || !shape || !diningRoomId) {
         throw new AppError("name, material, shape và diningRoomId là bắt buộc", 400);
@@ -15,6 +16,7 @@ export const createTable = async (req: Request, res: Response) => {
         material,
         shape,
         dimensions,
+        quantity: parseQuantity(quantity),
         diningRoomId,
     });
 
@@ -39,7 +41,13 @@ export const getTableById = async (req: Request, res: Response) => {
 
 export const updateTable = async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const updatedTable = await DiningTableService.update(id, req.body);
+    const { quantity, ...rest } = req.body;
+    const parsedQty = parseOptionalQuantity(quantity);
+
+    const updatedTable = await DiningTableService.update(id, {
+        ...rest,
+        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
+    });
 
     if (!updatedTable) {
         throw new AppError("Không tìm thấy bàn ăn để sửa", 404);

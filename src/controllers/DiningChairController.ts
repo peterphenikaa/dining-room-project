@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import { DiningChairService } from "../services/DiningChairService";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
+import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createChair = async (req: Request, res: Response) => {
-    const { name, material, color, diningTableId } = req.body;
+    const { name, material, color, quantity, diningTableId } = req.body;
 
     if (!name || !material || !diningTableId) {
         throw new AppError("name, material và diningTableId là bắt buộc", 400);
@@ -14,6 +15,7 @@ export const createChair = async (req: Request, res: Response) => {
         name,
         material,
         color,
+        quantity: parseQuantity(quantity),
         diningTableId,
     });
 
@@ -38,7 +40,13 @@ export const getChairById = async (req: Request, res: Response) => {
 
 export const updateChair = async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const updatedChair = await DiningChairService.update(id, req.body);
+    const { quantity, ...rest } = req.body;
+    const parsedQty = parseOptionalQuantity(quantity);
+
+    const updatedChair = await DiningChairService.update(id, {
+        ...rest,
+        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
+    });
 
     if (!updatedChair) {
         throw new AppError("Không tìm thấy ghế để sửa", 404);

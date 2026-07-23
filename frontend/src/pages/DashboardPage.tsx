@@ -5,7 +5,7 @@ import { fetchRooms } from "../api/rooms";
 import type { DiningRoom } from "../types/api";
 
 export function DashboardPage() {
-    const { user, logout } = useAuth();
+    const {user, logout} = useAuth();
     const [rooms, setRooms] = useState<DiningRoom[] | null>(null);
     const [roomsError, setRoomsError] = useState<string | null>(null);
     const [loadingRooms, setLoadingRooms] = useState(false);

@@ -11,6 +11,7 @@ export class DiningChairService {
         name: string;
         material: string;
         color?: string;
+        quantity: number;
         diningTableId: string;
     }) {
         const table = await tableRepository.findOneBy({ id: data.diningTableId });
@@ -20,6 +21,7 @@ export class DiningChairService {
             name: data.name,
             material: data.material,
             color: data.color,
+            quantity: data.quantity,
             diningTable: table,
         });
 
@@ -43,6 +45,7 @@ export class DiningChairService {
             name?: string;
             material?: string;
             color?: string;
+            quantity?: number;
             diningTableId?: string;
         }
     ) {

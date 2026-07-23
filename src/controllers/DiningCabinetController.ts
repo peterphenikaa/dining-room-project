@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import { DiningCabinetService } from "../services/DiningCabinetService";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
+import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createCabinet = async (req: Request, res: Response) => {
-    const { name, material, dimensions, diningRoomId } = req.body;
+    const { name, material, dimensions, quantity, diningRoomId } = req.body;
 
     if (!name || !material || !diningRoomId) {
         throw new AppError("name, material và diningRoomId là bắt buộc", 400);
@@ -14,6 +15,7 @@ export const createCabinet = async (req: Request, res: Response) => {
         name,
         material,
         dimensions,
+        quantity: parseQuantity(quantity),
         diningRoomId,
     });
 
@@ -38,7 +40,13 @@ export const getCabinetById = async (req: Request, res: Response) => {
 
 export const updateCabinet = async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const updatedCabinet = await DiningCabinetService.update(id, req.body);
+    const { quantity, ...rest } = req.body;
+    const parsedQty = parseOptionalQuantity(quantity);
+
+    const updatedCabinet = await DiningCabinetService.update(id, {
+        ...rest,
+        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
+    });
 
     if (!updatedCabinet) {
         throw new AppError("Không tìm thấy tủ để sửa", 404);

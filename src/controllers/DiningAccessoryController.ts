@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import { DiningAccessoryService } from "../services/DiningAccessoryService";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
+import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createAccessory = async (req: Request, res: Response) => {
-    const { name, type, diningTableId } = req.body;
+    const { name, type, quantity, diningTableId } = req.body;
 
     if (!name || !type || !diningTableId) {
         throw new AppError("name, type và diningTableId là bắt buộc", 400);
@@ -13,6 +14,7 @@ export const createAccessory = async (req: Request, res: Response) => {
     const newAccessory = await DiningAccessoryService.create({
         name,
         type,
+        quantity: parseQuantity(quantity),
         diningTableId,
     });
 
@@ -37,7 +39,13 @@ export const getAccessoryById = async (req: Request, res: Response) => {
 
 export const updateAccessory = async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const updatedAccessory = await DiningAccessoryService.update(id, req.body);
+    const { quantity, ...rest } = req.body;
+    const parsedQty = parseOptionalQuantity(quantity);
+
+    const updatedAccessory = await DiningAccessoryService.update(id, {
+        ...rest,
+        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
+    });
 
     if (!updatedAccessory) {
         throw new AppError("Không tìm thấy phụ kiện để sửa", 404);
