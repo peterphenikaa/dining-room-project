@@ -3,6 +3,7 @@ import * as roomsApi from "../api/rooms";
 import type { DiningRoom } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { getApiErrorMessage } from "../utils/apiError";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 const emptyForm = { name: "", area_size: "20", style: "" };
 
@@ -12,6 +13,8 @@ export function RoomsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
@@ -68,15 +71,19 @@ export function RoomsPage() {
         }
     }
 
-    async function handleDelete(id: string) {
-        if (!canWrite || !confirm("Xóa phòng ăn này? (cascade bàn/tủ)")) return;
+    async function handleDelete() {
+        if (!canWrite || !pendingDeleteId) return;
+        setDeleting(true);
         setError(null);
         try {
-            await roomsApi.deleteRoom(id);
-            if (editingId === id) startCreate();
+            await roomsApi.deleteRoom(pendingDeleteId);
+            if (editingId === pendingDeleteId) startCreate();
+            setPendingDeleteId(null);
             await load();
         } catch (err) {
             setError(getApiErrorMessage(err));
+        } finally {
+            setDeleting(false);
         }
     }
 
@@ -127,7 +134,7 @@ export function RoomsPage() {
                                                 <button
                                                     type="button"
                                                     className="danger"
-                                                    onClick={() => handleDelete(room.id)}
+                                                    onClick={() => setPendingDeleteId(room.id)}
                                                 >
                                                     Xóa
                                                 </button>
@@ -189,6 +196,15 @@ export function RoomsPage() {
                     </section>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={!!pendingDeleteId}
+                title="Xóa phòng ăn"
+                message="Xóa phòng này sẽ xóa luôn bàn và tủ bên trong. Tiếp tục?"
+                busy={deleting}
+                onCancel={() => setPendingDeleteId(null)}
+                onConfirm={() => void handleDelete()}
+            />
         </div>
     );
 }

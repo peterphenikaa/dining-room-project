@@ -4,6 +4,7 @@ import * as tablesApi from "../api/tables";
 import type { DiningChair, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { getApiErrorMessage } from "../utils/apiError";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 const emptyForm = {
     name: "",
@@ -20,6 +21,8 @@ export function ChairsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
@@ -88,14 +91,19 @@ export function ChairsPage() {
         }
     }
 
-    async function handleDelete(id: string) {
-        if (!canWrite || !confirm("Xóa ghế này?")) return;
+    async function handleDelete() {
+        if (!canWrite || !pendingDeleteId) return;
+        setDeleting(true);
+        setError(null);
         try {
-            await chairsApi.deleteChair(id);
-            if (editingId === id) startCreate();
+            await chairsApi.deleteChair(pendingDeleteId);
+            if (editingId === pendingDeleteId) startCreate();
+            setPendingDeleteId(null);
             await load();
         } catch (err) {
             setError(getApiErrorMessage(err));
+        } finally {
+            setDeleting(false);
         }
     }
 
@@ -150,7 +158,7 @@ export function ChairsPage() {
                                                 <button
                                                     type="button"
                                                     className="danger"
-                                                    onClick={() => handleDelete(row.id)}
+                                                    onClick={() => setPendingDeleteId(row.id)}
                                                 >
                                                     Xóa
                                                 </button>
@@ -236,6 +244,15 @@ export function ChairsPage() {
                     </section>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={!!pendingDeleteId}
+                title="Xóa ghế"
+                message="Bạn có chắc muốn xóa ghế này?"
+                busy={deleting}
+                onCancel={() => setPendingDeleteId(null)}
+                onConfirm={() => void handleDelete()}
+            />
         </div>
     );
 }

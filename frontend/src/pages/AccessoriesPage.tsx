@@ -4,6 +4,7 @@ import * as tablesApi from "../api/tables";
 import type { DiningAccessory, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { getApiErrorMessage } from "../utils/apiError";
+import { ConfirmDialog } from "../components/ConfirmDialog";
 
 const emptyForm = {
     name: "",
@@ -19,6 +20,8 @@ export function AccessoriesPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
@@ -85,14 +88,19 @@ export function AccessoriesPage() {
         }
     }
 
-    async function handleDelete(id: string) {
-        if (!canWrite || !confirm("Xóa phụ kiện này?")) return;
+    async function handleDelete() {
+        if (!canWrite || !pendingDeleteId) return;
+        setDeleting(true);
+        setError(null);
         try {
-            await accessoriesApi.deleteAccessory(id);
-            if (editingId === id) startCreate();
+            await accessoriesApi.deleteAccessory(pendingDeleteId);
+            if (editingId === pendingDeleteId) startCreate();
+            setPendingDeleteId(null);
             await load();
         } catch (err) {
             setError(getApiErrorMessage(err));
+        } finally {
+            setDeleting(false);
         }
     }
 
@@ -145,7 +153,7 @@ export function AccessoriesPage() {
                                                 <button
                                                     type="button"
                                                     className="danger"
-                                                    onClick={() => handleDelete(row.id)}
+                                                    onClick={() => setPendingDeleteId(row.id)}
                                                 >
                                                     Xóa
                                                 </button>
@@ -223,6 +231,15 @@ export function AccessoriesPage() {
                     </section>
                 )}
             </div>
+
+            <ConfirmDialog
+                open={!!pendingDeleteId}
+                title="Xóa phụ kiện"
+                message="Bạn có chắc muốn xóa phụ kiện này?"
+                busy={deleting}
+                onCancel={() => setPendingDeleteId(null)}
+                onConfirm={() => void handleDelete()}
+            />
         </div>
     );
 }
