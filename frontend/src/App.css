@@ -1,8 +1,8 @@
 :root {
-    font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+    font-family: "Segoe UI", system-ui, sans-serif;
     line-height: 1.5;
     color: #1a1a2e;
-    background: #f4f6fb;
+    background: #eef1f6;
 }
 
 * {
@@ -18,7 +18,7 @@ body {
     min-height: 100vh;
 }
 
-.app {
+.login-wrap {
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -28,19 +28,97 @@ body {
 
 .card {
     width: 100%;
-    max-width: 520px;
+    max-width: 420px;
     background: #fff;
     border-radius: 12px;
     padding: 28px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.header {
+.shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+}
+
+.sidebar {
+    background: #152033;
+    color: #e8eef7;
+    padding: 20px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 8px;
+}
+
+.brand .muted {
+    color: #9aa8bc;
+    font-size: 0.85rem;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.nav-link {
+    color: #c5d0de;
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.nav-link.active {
+    background: #2b6cb0;
+    color: #fff;
+}
+
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    padding: 0 4px;
+    word-break: break-all;
+}
+
+.shell-main {
+    padding: 24px;
+    overflow: auto;
+}
+
+.page {
+    max-width: 1100px;
+}
+
+.page-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 h1 {
@@ -59,21 +137,20 @@ h2 {
 }
 
 .hint {
-    margin-top: 16px;
+    margin: 0 0 16px;
     font-size: 0.9rem;
     color: #6b7280;
 }
 
 .error {
     color: #b91c1c;
-    margin: 0;
+    margin: 0 0 12px;
 }
 
 .form {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-top: 20px;
+    gap: 12px;
 }
 
 label {
@@ -84,11 +161,13 @@ label {
     font-weight: 500;
 }
 
-input {
+input,
+select {
     padding: 10px 12px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font: inherit;
+    background: #fff;
 }
 
 button {
@@ -112,10 +191,9 @@ button.secondary {
     color: #111827;
 }
 
-.panel {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid #e5e7eb;
+button.danger {
+    background: #fee2e2;
+    color: #b91c1c;
 }
 
 .actions {
@@ -124,18 +202,84 @@ button.secondary {
     gap: 10px;
 }
 
-.info-list {
-    margin: 0;
-    padding-left: 18px;
+.crud-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.panel-box {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.table-wrap {
+    overflow: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+}
+
+th {
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.row-actions {
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.row-actions button {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.link-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    background: #fff;
+    border-radius: 12px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.link-card:hover {
+    outline: 2px solid #93c5fd;
 }
 
 .badge {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
+    width: fit-content;
 }
 
 .badge-admin {
@@ -153,4 +297,25 @@ code {
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 0.85em;
+}
+
+@media (max-width: 900px) {
+    .shell {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .crud-grid {
+        grid-template-columns: 1fr;
+    }
 }

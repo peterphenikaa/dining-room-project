@@ -1,0 +1,229 @@
+import { type FormEvent, useEffect, useState } from "react";
+import * as accessoriesApi from "../api/accessories";
+import * as tablesApi from "../api/tables";
+import type { DiningAccessory, DiningTable } from "../types/api";
+import { useCanWrite } from "../hooks/useCanWrite";
+import { getApiErrorMessage } from "../utils/apiError";
+
+const emptyForm = {
+    name: "",
+    type: "",
+    quantity: "1",
+    diningTableId: "",
+};
+
+export function AccessoriesPage() {
+    const canWrite = useCanWrite();
+    const [items, setItems] = useState<DiningAccessory[]>([]);
+    const [tables, setTables] = useState<DiningTable[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [form, setForm] = useState(emptyForm);
+    const [saving, setSaving] = useState(false);
+
+    async function load() {
+        setLoading(true);
+        setError(null);
+        try {
+            const [accessories, tableList] = await Promise.all([
+                accessoriesApi.fetchAccessories(),
+                tablesApi.fetchTables(),
+            ]);
+            setItems(accessories);
+            setTables(tableList);
+            setForm((prev) => ({
+                ...prev,
+                diningTableId: prev.diningTableId || tableList[0]?.id || "",
+            }));
+        } catch (e) {
+            setError(getApiErrorMessage(e, "Không tải được phụ kiện"));
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        void load();
+    }, []);
+
+    function startCreate() {
+        setEditingId(null);
+        setForm({ ...emptyForm, diningTableId: tables[0]?.id || "" });
+    }
+
+    function startEdit(row: DiningAccessory) {
+        setEditingId(row.id);
+        setForm({
+            name: row.name,
+            type: row.type,
+            quantity: String(row.quantity ?? 1),
+            diningTableId: row.diningTable?.id || "",
+        });
+    }
+
+    async function handleSubmit(e: FormEvent) {
+        e.preventDefault();
+        if (!canWrite) return;
+        setSaving(true);
+        setError(null);
+        try {
+            const body = {
+                name: form.name.trim(),
+                type: form.type.trim(),
+                quantity: Number(form.quantity),
+                diningTableId: form.diningTableId,
+            };
+            if (editingId) await accessoriesApi.updateAccessory(editingId, body);
+            else await accessoriesApi.createAccessory(body);
+            startCreate();
+            await load();
+        } catch (err) {
+            setError(getApiErrorMessage(err));
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function handleDelete(id: string) {
+        if (!canWrite || !confirm("Xóa phụ kiện này?")) return;
+        try {
+            await accessoriesApi.deleteAccessory(id);
+            if (editingId === id) startCreate();
+            await load();
+        } catch (err) {
+            setError(getApiErrorMessage(err));
+        }
+    }
+
+    return (
+        <div className="page">
+            <header className="page-header">
+                <div>
+                    <h1>Phụ kiện bàn ăn</h1>
+                    <p className="muted">/api/accessories — có quantity</p>
+                </div>
+                {canWrite && (
+                    <button type="button" className="secondary" onClick={startCreate}>
+                        Form tạo mới
+                    </button>
+                )}
+            </header>
+
+            {error && <p className="error">{error}</p>}
+            {loading && <p className="muted">Đang tải...</p>}
+
+            <div className="crud-grid">
+                <section className="panel-box">
+                    <h2>Danh sách ({items.length})</h2>
+                    <div className="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tên</th>
+                                    <th>Loại</th>
+                                    <th>SL</th>
+                                    <th>Bàn</th>
+                                    {canWrite && <th></th>}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map((row) => (
+                                    <tr key={row.id}>
+                                        <td>{row.name}</td>
+                                        <td>{row.type}</td>
+                                        <td>{row.quantity}</td>
+                                        <td>{row.diningTable?.name || "—"}</td>
+                                        {canWrite && (
+                                            <td className="row-actions">
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={() => startEdit(row)}
+                                                >
+                                                    Sửa
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="danger"
+                                                    onClick={() => handleDelete(row.id)}
+                                                >
+                                                    Xóa
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                                {!loading && items.length === 0 && (
+                                    <tr>
+                                        <td colSpan={canWrite ? 5 : 4}>Chưa có dữ liệu</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {canWrite && (
+                    <section className="panel-box">
+                        <h2>{editingId ? "Sửa phụ kiện" : "Tạo phụ kiện"}</h2>
+                        <form className="form" onSubmit={handleSubmit}>
+                            <label>
+                                Tên
+                                <input
+                                    value={form.name}
+                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                    required
+                                />
+                            </label>
+                            <label>
+                                Loại
+                                <input
+                                    value={form.type}
+                                    onChange={(e) => setForm({ ...form, type: e.target.value })}
+                                    required
+                                />
+                            </label>
+                            <label>
+                                Số lượng
+                                <input
+                                    type="number"
+                                    min={1}
+                                    step={1}
+                                    value={form.quantity}
+                                    onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                                    required
+                                />
+                            </label>
+                            <label>
+                                Bàn ăn
+                                <select
+                                    value={form.diningTableId}
+                                    onChange={(e) => setForm({ ...form, diningTableId: e.target.value })}
+                                    required
+                                >
+                                    <option value="">— chọn —</option>
+                                    {tables.map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <div className="actions">
+                                <button type="submit" disabled={saving || !tables.length}>
+                                    {saving ? "Đang lưu..." : editingId ? "Cập nhật" : "Tạo mới"}
+                                </button>
+                                {editingId && (
+                                    <button type="button" className="secondary" onClick={startCreate}>
+                                        Hủy
+                                    </button>
+                                )}
+                            </div>
+                        </form>
+                    </section>
+                )}
+            </div>
+        </div>
+    );
+}
