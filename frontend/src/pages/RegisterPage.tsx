@@ -3,10 +3,11 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getApiErrorMessage } from "../utils/apiError";
 
-export function LoginPage() {
-    const { user, login } = useAuth();
-    const [email, setEmail] = useState("admin@demo.com");
-    const [password, setPassword] = useState("demo");
+export function RegisterPage() {
+    const { user, register } = useAuth();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
@@ -19,9 +20,9 @@ export function LoginPage() {
         setError(null);
         setSubmitting(true);
         try {
-            await login(email, password);
+            await register(email, password, confirmPassword);
         } catch (err) {
-            setError(getApiErrorMessage(err, "Email hoặc mật khẩu không đúng"));
+            setError(getApiErrorMessage(err, "Không đăng ký được"));
         } finally {
             setSubmitting(false);
         }
@@ -29,7 +30,8 @@ export function LoginPage() {
 
     return (
         <div className="card">
-            <h1>Đăng nhập</h1>
+            <h1>Đăng ký</h1>
+            <p className="hint">Tạo tài khoản mới (role mặc định: user). Mật khẩu tối thiểu 8 ký tự.</p>
 
             <form onSubmit={handleSubmit} className="form">
                 <label>
@@ -38,6 +40,7 @@ export function LoginPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="email"
                         required
                     />
                 </label>
@@ -47,22 +50,30 @@ export function LoginPage() {
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="new-password"
+                        minLength={8}
+                        required
+                    />
+                </label>
+                <label>
+                    Xác nhận mật khẩu
+                    <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        autoComplete="new-password"
+                        minLength={8}
                         required
                     />
                 </label>
                 {error && <p className="error">{error}</p>}
                 <button type="submit" disabled={submitting}>
-                    {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
+                    {submitting ? "Đang đăng ký..." : "Đăng ký"}
                 </button>
             </form>
 
-            <p className="hint">
-                Demo: <code>admin@demo.com</code> / <code>user@demo.com</code> — mật khẩu{" "}
-                <code>demo</code>
-            </p>
-
             <p className="auth-switch">
-                Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+                Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
             </p>
         </div>
     );

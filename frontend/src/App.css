@@ -142,6 +142,23 @@ h2 {
     color: #6b7280;
 }
 
+.auth-switch {
+    margin: 16px 0 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+.auth-switch a {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
 .error {
     color: #b91c1c;
     margin: 0 0 12px;

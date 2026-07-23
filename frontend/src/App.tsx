@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./components/AppShell";
 import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { RoomsPage } from "./pages/RoomsPage";
 import { TablesPage } from "./pages/TablesPage";
@@ -21,6 +22,14 @@ export default function App() {
                         element={
                             <main className="login-wrap">
                                 <LoginPage />
+                            </main>
+                        }
+                    />
+                    <Route
+                        path="/register"
+                        element={
+                            <main className="login-wrap">
+                                <RegisterPage />
                             </main>
                         }
                     />

@@ -9,6 +9,15 @@ export async function login(email: string, password: string) {
     return data.data.user;
 }
 
+export async function register(email: string, password: string, confirmPassword: string) {
+    const { data } = await api.post<ApiSuccess<{ user: AuthUser }>>("/api/auth/register", {
+        email,
+        password,
+        confirmPassword,
+    });
+    return data.data.user;
+}
+
 export async function logout() {
     await api.post("/api/auth/logout");
 }

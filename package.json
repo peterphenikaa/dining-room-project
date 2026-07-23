@@ -14,7 +14,8 @@
     "mysql2": "^3.23.0",
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.31"
+    "typeorm": "^0.3.31",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
