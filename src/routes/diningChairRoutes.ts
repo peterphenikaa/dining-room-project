@@ -6,13 +6,18 @@ import {
     updateChair,
     deleteChair,
 } from "../controllers/DiningChairController";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
 
 const router = Router();
 
-router.post("/", createChair);
+router.use(authenticate);
+
 router.get("/", getAllChairs);
 router.get("/:id", getChairById);
-router.put("/:id", updateChair);
-router.delete("/:id", deleteChair);
+
+router.post("/", authorize("admin"), createChair);
+router.put("/:id", authorize("admin"), updateChair);
+router.delete("/:id", authorize("admin"), deleteChair);
 
 export default router;

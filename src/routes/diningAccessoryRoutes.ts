@@ -6,13 +6,18 @@ import {
     updateAccessory,
     deleteAccessory,
 } from "../controllers/DiningAccessoryController";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
 
 const router = Router();
 
-router.post("/", createAccessory);
+router.use(authenticate);
+
 router.get("/", getAllAccessories);
 router.get("/:id", getAccessoryById);
-router.put("/:id", updateAccessory);
-router.delete("/:id", deleteAccessory);
+
+router.post("/", authorize("admin"), createAccessory);
+router.put("/:id", authorize("admin"), updateAccessory);
+router.delete("/:id", authorize("admin"), deleteAccessory);
 
 export default router;

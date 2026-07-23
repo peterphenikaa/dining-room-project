@@ -6,13 +6,18 @@ import {
     updateCabinet,
     deleteCabinet,
 } from "../controllers/DiningCabinetController";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
 
 const router = Router();
 
-router.post("/", createCabinet);
+router.use(authenticate);
+
 router.get("/", getAllCabinets);
 router.get("/:id", getCabinetById);
-router.put("/:id", updateCabinet);
-router.delete("/:id", deleteCabinet);
+
+router.post("/", authorize("admin"), createCabinet);
+router.put("/:id", authorize("admin"), updateCabinet);
+router.delete("/:id", authorize("admin"), deleteCabinet);
 
 export default router;
