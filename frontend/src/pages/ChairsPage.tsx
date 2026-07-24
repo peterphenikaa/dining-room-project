@@ -5,7 +5,9 @@ import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
 import type { DiningChair, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { getApiErrorMessage } from "../utils/apiError";
+import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
+import { CursorPager } from "../components/CursorPager";
 
 const emptyForm = {
     name: "",
@@ -19,10 +21,11 @@ export function ChairsPage() {
     const canWrite = useCanWrite();
     const [items, setItems] = useState<DiningChair[]>([]);
     const [tables, setTables] = useState<DiningTable[]>([]);
-    const [nextCursor, setNextCursor] = useState<string | null>(null);
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageCursors, setPageCursors] = useState<(string | undefined)[]>([undefined]);
     const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [loadingMore, setLoadingMore] = useState(false);
+    const [paging, setPaging] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -30,47 +33,62 @@ export function ChairsPage() {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
-    async function load(reset = true) {
-        if (!reset && !nextCursor) return;
-        if (reset) {
-            setLoading(true);
-            setError(null);
-        } else {
-            setLoadingMore(true);
-        }
+    async function loadFirst() {
+        setLoading(true);
+        setError(null);
         try {
-            if (reset) {
-                const [chairsPage, tablesPage] = await Promise.all([
-                    chairsApi.fetchChairs({ limit: PAGE_LIMIT }),
-                    tablesApi.fetchTables({ limit: OPTIONS_LIMIT }),
-                ]);
-                setItems(chairsPage.items);
-                setNextCursor(chairsPage.nextCursor);
-                setHasMore(chairsPage.hasMore);
-                setTables(tablesPage.items);
-                setForm((prev) => ({
-                    ...prev,
-                    diningTableId: prev.diningTableId || tablesPage.items[0]?.id || "",
-                }));
-            } else {
-                const chairsPage = await chairsApi.fetchChairs({
-                    cursor: nextCursor,
-                    limit: PAGE_LIMIT,
-                });
-                setItems((prev) => [...prev, ...chairsPage.items]);
-                setNextCursor(chairsPage.nextCursor);
-                setHasMore(chairsPage.hasMore);
-            }
+            const [chairsPage, tablesPage] = await Promise.all([
+                chairsApi.fetchChairs({ limit: PAGE_LIMIT }),
+                tablesApi.fetchTables({ limit: OPTIONS_LIMIT }),
+            ]);
+            setPageCursors([undefined]);
+            applyCursorPage(chairsPage, 0, setItems, setHasMore, setPageIndex, setPageCursors);
+            setTables(tablesPage.items);
+            setForm((prev) => ({
+                ...prev,
+                diningTableId: prev.diningTableId || tablesPage.items[0]?.id || "",
+            }));
         } catch (e) {
             setError(getApiErrorMessage(e, "Không tải được ghế"));
         } finally {
             setLoading(false);
-            setLoadingMore(false);
+        }
+    }
+
+    async function goNext() {
+        const cursor = pageCursors[pageIndex + 1];
+        if (!hasMore || !cursor) return;
+        setPaging(true);
+        setError(null);
+        try {
+            const page = await chairsApi.fetchChairs({ cursor, limit: PAGE_LIMIT });
+            applyCursorPage(page, pageIndex + 1, setItems, setHasMore, setPageIndex, setPageCursors);
+        } catch (e) {
+            setError(getApiErrorMessage(e, "Không tải được ghế"));
+        } finally {
+            setPaging(false);
+        }
+    }
+
+    async function goPrev() {
+        if (pageIndex <= 0) return;
+        setPaging(true);
+        setError(null);
+        try {
+            const page = await chairsApi.fetchChairs({
+                cursor: pageCursors[pageIndex - 1],
+                limit: PAGE_LIMIT,
+            });
+            applyCursorPage(page, pageIndex - 1, setItems, setHasMore, setPageIndex, setPageCursors);
+        } catch (e) {
+            setError(getApiErrorMessage(e, "Không tải được ghế"));
+        } finally {
+            setPaging(false);
         }
     }
 
     useEffect(() => {
-        void load(true);
+        void loadFirst();
     }, []);
 
     function startCreate() {
@@ -105,7 +123,7 @@ export function ChairsPage() {
             if (editingId) await chairsApi.updateChair(editingId, body);
             else await chairsApi.createChair(body);
             startCreate();
-            await load(true);
+            await loadFirst();
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -121,7 +139,7 @@ export function ChairsPage() {
             await chairsApi.deleteChair(pendingDeleteId);
             if (editingId === pendingDeleteId) startCreate();
             setPendingDeleteId(null);
-            await load(true);
+            await loadFirst();
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -147,7 +165,7 @@ export function ChairsPage() {
 
             <div className="crud-grid">
                 <section className="panel-box">
-                    <h2>Danh sách ({items.length})</h2>
+                    <h2>Danh sách ({items.length}/trang)</h2>
                     <div className="table-wrap">
                         <table>
                             <thead>
@@ -196,18 +214,14 @@ export function ChairsPage() {
                             </tbody>
                         </table>
                     </div>
-                    {hasMore && (
-                        <div className="load-more">
-                            <button
-                                type="button"
-                                className="secondary"
-                                disabled={loadingMore}
-                                onClick={() => void load(false)}
-                            >
-                                {loadingMore ? "Đang tải..." : "Tải thêm"}
-                            </button>
-                        </div>
-                    )}
+                    <CursorPager
+                        pageIndex={pageIndex}
+                        canPrev={pageIndex > 0}
+                        canNext={hasMore}
+                        busy={paging}
+                        onPrev={() => void goPrev()}
+                        onNext={() => void goNext()}
+                    />
                 </section>
 
                 {canWrite && (

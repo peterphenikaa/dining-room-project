@@ -275,6 +275,21 @@ button.danger {
     justify-content: center;
 }
 
+.pager {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.pager-label {
+    font-size: 0.9rem;
+    color: #4b5563;
+    min-width: 5rem;
+    text-align: center;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
