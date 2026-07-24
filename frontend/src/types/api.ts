@@ -18,6 +18,17 @@ export type ApiError = {
     message: string;
 };
 
+export type CursorPage<T> = {
+    items: T[];
+    nextCursor: string | null;
+    hasMore: boolean;
+};
+
+export type ListQuery = {
+    cursor?: string | null;
+    limit?: number;
+};
+
 export type DiningRoom = {
     id: string;
     name: string;

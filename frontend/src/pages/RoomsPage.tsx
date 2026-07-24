@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import * as roomsApi from "../api/rooms";
+import { PAGE_LIMIT } from "../api/listParams";
 import type { DiningRoom } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { getApiErrorMessage } from "../utils/apiError";
@@ -10,7 +11,10 @@ const emptyForm = { name: "", area_size: "20", style: "" };
 export function RoomsPage() {
     const canWrite = useCanWrite();
     const [items, setItems] = useState<DiningRoom[]>([]);
+    const [nextCursor, setNextCursor] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -18,20 +22,32 @@ export function RoomsPage() {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
-    async function load() {
-        setLoading(true);
-        setError(null);
+    async function load(reset = true) {
+        if (!reset && !nextCursor) return;
+        if (reset) {
+            setLoading(true);
+            setError(null);
+        } else {
+            setLoadingMore(true);
+        }
         try {
-            setItems(await roomsApi.fetchRooms());
+            const page = await roomsApi.fetchRooms({
+                cursor: reset ? undefined : nextCursor,
+                limit: PAGE_LIMIT,
+            });
+            setItems((prev) => (reset ? page.items : [...prev, ...page.items]));
+            setNextCursor(page.nextCursor);
+            setHasMore(page.hasMore);
         } catch (e) {
             setError(getApiErrorMessage(e, "Không tải được phòng ăn"));
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     }
 
     useEffect(() => {
-        void load();
+        void load(true);
     }, []);
 
     function startCreate() {
@@ -63,7 +79,7 @@ export function RoomsPage() {
             else await roomsApi.createRoom(body);
             setForm(emptyForm);
             setEditingId(null);
-            await load();
+            await load(true);
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -79,7 +95,7 @@ export function RoomsPage() {
             await roomsApi.deleteRoom(pendingDeleteId);
             if (editingId === pendingDeleteId) startCreate();
             setPendingDeleteId(null);
-            await load();
+            await load(true);
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -150,6 +166,18 @@ export function RoomsPage() {
                             </tbody>
                         </table>
                     </div>
+                    {hasMore && (
+                        <div className="load-more">
+                            <button
+                                type="button"
+                                className="secondary"
+                                disabled={loadingMore}
+                                onClick={() => void load(false)}
+                            >
+                                {loadingMore ? "Đang tải..." : "Tải thêm"}
+                            </button>
+                        </div>
+                    )}
                 </section>
 
                 {canWrite && (

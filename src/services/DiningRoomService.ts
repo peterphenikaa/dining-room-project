@@ -1,5 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { DiningRoom } from "../entity/DiningRoom";
+import type { CursorPaginationQuery } from "../schemas/paginationSchemas";
+import { paginateByCursor } from "../utils/cursorPagination";
 
 const roomRepository = AppDataSource.getRepository(DiningRoom);
 
@@ -9,8 +11,8 @@ export class DiningRoomService {
         return await roomRepository.save(newRoom);
     }
 
-    static async getAll() {
-        return await roomRepository.find();
+    static async getAll(query: CursorPaginationQuery) {
+        return paginateByCursor(roomRepository, { ...query, alias: "room" });
     }
 
     static async getById(id: string) {

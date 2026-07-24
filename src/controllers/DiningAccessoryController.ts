@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { DiningAccessoryService } from "../services/DiningAccessoryService";
+import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
@@ -22,8 +23,9 @@ export const createAccessory = async (req: Request, res: Response) => {
 };
 
 export const getAllAccessories = async (req: Request, res: Response) => {
-    const accessories = await DiningAccessoryService.getAll();
-    return SuccessResponse(res, 200, "Lấy danh sách phụ kiện thành công", accessories);
+    const query = cursorPaginationQuerySchema.parse(req.query);
+    const page = await DiningAccessoryService.getAll(query);
+    return SuccessResponse(res, 200, "Lấy danh sách phụ kiện thành công", page);
 };
 
 export const getAccessoryById = async (req: Request, res: Response) => {

@@ -1,5 +1,6 @@
 import { api } from "./client";
-import type { ApiSuccess, DiningAccessory } from "../types/api";
+import { toListParams } from "./listParams";
+import type { ApiSuccess, CursorPage, DiningAccessory, ListQuery } from "../types/api";
 
 export type AccessoryInput = {
     name: string;
@@ -8,8 +9,10 @@ export type AccessoryInput = {
     diningTableId: string;
 };
 
-export async function fetchAccessories() {
-    const { data } = await api.get<ApiSuccess<DiningAccessory[]>>("/api/accessories");
+export async function fetchAccessories(query?: ListQuery) {
+    const { data } = await api.get<ApiSuccess<CursorPage<DiningAccessory>>>("/api/accessories", {
+        params: toListParams(query),
+    });
     return data.data;
 }
 

@@ -1,7 +1,9 @@
 import { AppDataSource } from "../data-source";
 import { DiningTable } from "../entity/DiningTable";
 import { DiningRoom } from "../entity/DiningRoom";
+import type { CursorPaginationQuery } from "../schemas/paginationSchemas";
 import { AppError } from "../utils/AppError";
+import { paginateByCursor } from "../utils/cursorPagination";
 
 const roomRepository = AppDataSource.getRepository(DiningRoom);
 const tableRepository = AppDataSource.getRepository(DiningTable);
@@ -30,8 +32,12 @@ export class DiningTableService {
         return await tableRepository.save(newTable);
     }
 
-    static async getAll() {
-        return await tableRepository.find({ relations: ["diningRoom"] });
+    static async getAll(query: CursorPaginationQuery) {
+        return paginateByCursor(tableRepository, {
+            ...query,
+            alias: "table",
+            relations: ["diningRoom"],
+        });
     }
 
     static async getById(id: string) {

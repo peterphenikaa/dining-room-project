@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { DiningTableService } from "../services/DiningTableService";
+import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
@@ -24,8 +25,9 @@ export const createTable = async (req: Request, res: Response) => {
 };
 
 export const getAllTables = async (req: Request, res: Response) => {
-    const tables = await DiningTableService.getAll();
-    return SuccessResponse(res, 200, "Lấy danh sách bàn ăn thành công", tables);
+    const query = cursorPaginationQuerySchema.parse(req.query);
+    const page = await DiningTableService.getAll(query);
+    return SuccessResponse(res, 200, "Lấy danh sách bàn ăn thành công", page);
 };
 
 export const getTableById = async (req: Request, res: Response) => {

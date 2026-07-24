@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { DiningRoomService } from "../services/DiningRoomService";
+import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 
@@ -15,8 +16,9 @@ export const createRoom = async (req: Request, res: Response) => {
 };
 
 export const getAllRooms = async (req: Request, res: Response) => {
-    const rooms = await DiningRoomService.getAll();
-    return SuccessResponse(res, 200, "Lấy danh sách phòng ăn thành công", rooms);
+    const query = cursorPaginationQuerySchema.parse(req.query);
+    const page = await DiningRoomService.getAll(query);
+    return SuccessResponse(res, 200, "Lấy danh sách phòng ăn thành công", page);
 };
 
 export const getRoomById = async (req: Request, res: Response) => {

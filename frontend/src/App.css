@@ -237,6 +237,12 @@ button.danger {
     overflow: auto;
 }
 
+.load-more {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;

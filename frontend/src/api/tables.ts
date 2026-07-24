@@ -1,5 +1,6 @@
 import { api } from "./client";
-import type { ApiSuccess, DiningTable } from "../types/api";
+import { toListParams } from "./listParams";
+import type { ApiSuccess, CursorPage, DiningTable, ListQuery } from "../types/api";
 
 export type TableInput = {
     name: string;
@@ -10,8 +11,10 @@ export type TableInput = {
     diningRoomId: string;
 };
 
-export async function fetchTables() {
-    const { data } = await api.get<ApiSuccess<DiningTable[]>>("/api/tables");
+export async function fetchTables(query?: ListQuery) {
+    const { data } = await api.get<ApiSuccess<CursorPage<DiningTable>>>("/api/tables", {
+        params: toListParams(query),
+    });
     return data.data;
 }
 

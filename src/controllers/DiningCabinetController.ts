@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { DiningCabinetService } from "../services/DiningCabinetService";
+import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
@@ -23,8 +24,9 @@ export const createCabinet = async (req: Request, res: Response) => {
 };
 
 export const getAllCabinets = async (req: Request, res: Response) => {
-    const cabinets = await DiningCabinetService.getAll();
-    return SuccessResponse(res, 200, "Lấy danh sách tủ thành công", cabinets);
+    const query = cursorPaginationQuerySchema.parse(req.query);
+    const page = await DiningCabinetService.getAll(query);
+    return SuccessResponse(res, 200, "Lấy danh sách tủ thành công", page);
 };
 
 export const getCabinetById = async (req: Request, res: Response) => {

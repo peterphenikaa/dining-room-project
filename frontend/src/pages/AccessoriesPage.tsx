@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import * as accessoriesApi from "../api/accessories";
 import * as tablesApi from "../api/tables";
+import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
 import type { DiningAccessory, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { getApiErrorMessage } from "../utils/apiError";
@@ -17,7 +18,10 @@ export function AccessoriesPage() {
     const canWrite = useCanWrite();
     const [items, setItems] = useState<DiningAccessory[]>([]);
     const [tables, setTables] = useState<DiningTable[]>([]);
+    const [nextCursor, setNextCursor] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -25,29 +29,47 @@ export function AccessoriesPage() {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
-    async function load() {
-        setLoading(true);
-        setError(null);
+    async function load(reset = true) {
+        if (!reset && !nextCursor) return;
+        if (reset) {
+            setLoading(true);
+            setError(null);
+        } else {
+            setLoadingMore(true);
+        }
         try {
-            const [accessories, tableList] = await Promise.all([
-                accessoriesApi.fetchAccessories(),
-                tablesApi.fetchTables(),
-            ]);
-            setItems(accessories);
-            setTables(tableList);
-            setForm((prev) => ({
-                ...prev,
-                diningTableId: prev.diningTableId || tableList[0]?.id || "",
-            }));
+            if (reset) {
+                const [accessoriesPage, tablesPage] = await Promise.all([
+                    accessoriesApi.fetchAccessories({ limit: PAGE_LIMIT }),
+                    tablesApi.fetchTables({ limit: OPTIONS_LIMIT }),
+                ]);
+                setItems(accessoriesPage.items);
+                setNextCursor(accessoriesPage.nextCursor);
+                setHasMore(accessoriesPage.hasMore);
+                setTables(tablesPage.items);
+                setForm((prev) => ({
+                    ...prev,
+                    diningTableId: prev.diningTableId || tablesPage.items[0]?.id || "",
+                }));
+            } else {
+                const accessoriesPage = await accessoriesApi.fetchAccessories({
+                    cursor: nextCursor,
+                    limit: PAGE_LIMIT,
+                });
+                setItems((prev) => [...prev, ...accessoriesPage.items]);
+                setNextCursor(accessoriesPage.nextCursor);
+                setHasMore(accessoriesPage.hasMore);
+            }
         } catch (e) {
             setError(getApiErrorMessage(e, "Không tải được phụ kiện"));
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     }
 
     useEffect(() => {
-        void load();
+        void load(true);
     }, []);
 
     function startCreate() {
@@ -80,7 +102,7 @@ export function AccessoriesPage() {
             if (editingId) await accessoriesApi.updateAccessory(editingId, body);
             else await accessoriesApi.createAccessory(body);
             startCreate();
-            await load();
+            await load(true);
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -96,7 +118,7 @@ export function AccessoriesPage() {
             await accessoriesApi.deleteAccessory(pendingDeleteId);
             if (editingId === pendingDeleteId) startCreate();
             setPendingDeleteId(null);
-            await load();
+            await load(true);
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -169,6 +191,18 @@ export function AccessoriesPage() {
                             </tbody>
                         </table>
                     </div>
+                    {hasMore && (
+                        <div className="load-more">
+                            <button
+                                type="button"
+                                className="secondary"
+                                disabled={loadingMore}
+                                onClick={() => void load(false)}
+                            >
+                                {loadingMore ? "Đang tải..." : "Tải thêm"}
+                            </button>
+                        </div>
+                    )}
                 </section>
 
                 {canWrite && (

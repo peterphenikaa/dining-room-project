@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { DiningChairService } from "../services/DiningChairService";
+import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
@@ -23,8 +24,9 @@ export const createChair = async (req: Request, res: Response) => {
 };
 
 export const getAllChairs = async (req: Request, res: Response) => {
-    const chairs = await DiningChairService.getAll();
-    return SuccessResponse(res, 200, "Lấy danh sách ghế thành công", chairs);
+    const query = cursorPaginationQuerySchema.parse(req.query);
+    const page = await DiningChairService.getAll(query);
+    return SuccessResponse(res, 200, "Lấy danh sách ghế thành công", page);
 };
 
 export const getChairById = async (req: Request, res: Response) => {

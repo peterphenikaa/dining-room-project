@@ -1,5 +1,6 @@
 import { api } from "./client";
-import type { ApiSuccess, DiningChair } from "../types/api";
+import { toListParams } from "./listParams";
+import type { ApiSuccess, CursorPage, DiningChair, ListQuery } from "../types/api";
 
 export type ChairInput = {
     name: string;
@@ -9,8 +10,10 @@ export type ChairInput = {
     diningTableId: string;
 };
 
-export async function fetchChairs() {
-    const { data } = await api.get<ApiSuccess<DiningChair[]>>("/api/chairs");
+export async function fetchChairs(query?: ListQuery) {
+    const { data } = await api.get<ApiSuccess<CursorPage<DiningChair>>>("/api/chairs", {
+        params: toListParams(query),
+    });
     return data.data;
 }
 

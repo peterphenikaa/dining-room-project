@@ -1,5 +1,6 @@
 import { api } from "./client";
-import type { ApiSuccess, DiningRoom } from "../types/api";
+import { toListParams } from "./listParams";
+import type { ApiSuccess, CursorPage, DiningRoom, ListQuery } from "../types/api";
 
 export type RoomInput = {
     name: string;
@@ -7,8 +8,10 @@ export type RoomInput = {
     style?: string;
 };
 
-export async function fetchRooms() {
-    const { data } = await api.get<ApiSuccess<DiningRoom[]>>("/api/rooms");
+export async function fetchRooms(query?: ListQuery) {
+    const { data } = await api.get<ApiSuccess<CursorPage<DiningRoom>>>("/api/rooms", {
+        params: toListParams(query),
+    });
     return data.data;
 }
 

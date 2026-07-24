@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import * as tablesApi from "../api/tables";
 import * as roomsApi from "../api/rooms";
+import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
 import type { DiningRoom, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { getApiErrorMessage } from "../utils/apiError";
@@ -19,7 +20,10 @@ export function TablesPage() {
     const canWrite = useCanWrite();
     const [items, setItems] = useState<DiningTable[]>([]);
     const [rooms, setRooms] = useState<DiningRoom[]>([]);
+    const [nextCursor, setNextCursor] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -27,29 +31,47 @@ export function TablesPage() {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
 
-    async function load() {
-        setLoading(true);
-        setError(null);
+    async function load(reset = true) {
+        if (!reset && !nextCursor) return;
+        if (reset) {
+            setLoading(true);
+            setError(null);
+        } else {
+            setLoadingMore(true);
+        }
         try {
-            const [tables, roomList] = await Promise.all([
-                tablesApi.fetchTables(),
-                roomsApi.fetchRooms(),
-            ]);
-            setItems(tables);
-            setRooms(roomList);
-            setForm((prev) => ({
-                ...prev,
-                diningRoomId: prev.diningRoomId || roomList[0]?.id || "",
-            }));
+            if (reset) {
+                const [tablesPage, roomsPage] = await Promise.all([
+                    tablesApi.fetchTables({ limit: PAGE_LIMIT }),
+                    roomsApi.fetchRooms({ limit: OPTIONS_LIMIT }),
+                ]);
+                setItems(tablesPage.items);
+                setNextCursor(tablesPage.nextCursor);
+                setHasMore(tablesPage.hasMore);
+                setRooms(roomsPage.items);
+                setForm((prev) => ({
+                    ...prev,
+                    diningRoomId: prev.diningRoomId || roomsPage.items[0]?.id || "",
+                }));
+            } else {
+                const tablesPage = await tablesApi.fetchTables({
+                    cursor: nextCursor,
+                    limit: PAGE_LIMIT,
+                });
+                setItems((prev) => [...prev, ...tablesPage.items]);
+                setNextCursor(tablesPage.nextCursor);
+                setHasMore(tablesPage.hasMore);
+            }
         } catch (e) {
             setError(getApiErrorMessage(e, "Không tải được bàn ăn"));
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     }
 
     useEffect(() => {
-        void load();
+        void load(true);
     }, []);
 
     function startCreate() {
@@ -86,7 +108,7 @@ export function TablesPage() {
             if (editingId) await tablesApi.updateTable(editingId, body);
             else await tablesApi.createTable(body);
             startCreate();
-            await load();
+            await load(true);
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -102,7 +124,7 @@ export function TablesPage() {
             await tablesApi.deleteTable(pendingDeleteId);
             if (editingId === pendingDeleteId) startCreate();
             setPendingDeleteId(null);
-            await load();
+            await load(true);
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
@@ -177,6 +199,18 @@ export function TablesPage() {
                             </tbody>
                         </table>
                     </div>
+                    {hasMore && (
+                        <div className="load-more">
+                            <button
+                                type="button"
+                                className="secondary"
+                                disabled={loadingMore}
+                                onClick={() => void load(false)}
+                            >
+                                {loadingMore ? "Đang tải..." : "Tải thêm"}
+                            </button>
+                        </div>
+                    )}
                 </section>
 
                 {canWrite && (
