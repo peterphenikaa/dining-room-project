@@ -1,11 +1,13 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { DiningCabinetService } from "../services/DiningCabinetService";
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
+import { emitDiningChanged } from "../realtime/io";
+import { AuthRequest } from "../types/auth";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
-export const createCabinet = async (req: Request, res: Response) => {
+export const createCabinet = async (req: AuthRequest, res: Response) => {
     const { name, material, dimensions, quantity, diningRoomId } = req.body;
 
     if (!name || !material || !diningRoomId) {
@@ -20,16 +22,23 @@ export const createCabinet = async (req: Request, res: Response) => {
         diningRoomId,
     });
 
+    emitDiningChanged({
+        entityType: "cabinet",
+        action: "create",
+        entityId: newCabinet.id,
+        actorId: req.user!.id,
+        actorEmail: req.user!.email,
+    });
     return SuccessResponse(res, 201, "Tạo tủ thành công!", newCabinet);
 };
 
-export const getAllCabinets = async (req: Request, res: Response) => {
+export const getAllCabinets = async (req: AuthRequest, res: Response) => {
     const query = cursorPaginationQuerySchema.parse(req.query);
     const page = await DiningCabinetService.getAll(query);
     return SuccessResponse(res, 200, "Lấy danh sách tủ thành công", page);
 };
 
-export const getCabinetById = async (req: Request, res: Response) => {
+export const getCabinetById = async (req: AuthRequest, res: Response) => {
     const id = req.params.id as string;
     const cabinet = await DiningCabinetService.getById(id);
 
@@ -40,7 +49,7 @@ export const getCabinetById = async (req: Request, res: Response) => {
     return SuccessResponse(res, 200, "Lấy dữ liệu thành công", cabinet);
 };
 
-export const updateCabinet = async (req: Request, res: Response) => {
+export const updateCabinet = async (req: AuthRequest, res: Response) => {
     const id = req.params.id as string;
     const { quantity, ...rest } = req.body;
     const parsedQty = parseOptionalQuantity(quantity);
@@ -54,10 +63,17 @@ export const updateCabinet = async (req: Request, res: Response) => {
         throw new AppError("Không tìm thấy tủ để sửa", 404);
     }
 
+    emitDiningChanged({
+        entityType: "cabinet",
+        action: "update",
+        entityId: updatedCabinet.id,
+        actorId: req.user!.id,
+        actorEmail: req.user!.email,
+    });
     return SuccessResponse(res, 200, "Cập nhật thành công!", updatedCabinet);
 };
 
-export const deleteCabinet = async (req: Request, res: Response) => {
+export const deleteCabinet = async (req: AuthRequest, res: Response) => {
     const id = req.params.id as string;
     const isDeleted = await DiningCabinetService.delete(id);
 
@@ -65,5 +81,12 @@ export const deleteCabinet = async (req: Request, res: Response) => {
         throw new AppError("Không tìm thấy tủ để xóa", 404);
     }
 
+    emitDiningChanged({
+        entityType: "cabinet",
+        action: "delete",
+        entityId: id,
+        actorId: req.user!.id,
+        actorEmail: req.user!.email,
+    });
     return SuccessResponse(res, 200, "Đã xóa tủ thành công!", null);
 };

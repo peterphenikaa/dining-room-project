@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { RealtimeToast } from "./RealtimeToast";
 
 const NAV = [
     { to: "/", label: "Tổng quan", end: true },
@@ -43,6 +44,7 @@ export function AppShell() {
                 </div>
             </aside>
             <div className="shell-main">
+                <RealtimeToast />
                 <Outlet />
             </div>
         </div>

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import "reflect-metadata";
+import http from "http";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -12,6 +13,7 @@ import diningChairRoutes from "./routes/diningChairRoutes";
 import diningAccessoryRoutes from "./routes/diningAccessoryRoutes";
 import diningCabinetRoutes from "./routes/diningCabinetRoutes";
 import { errorHandler } from "./middlewares/errorHandler";
+import { initIO } from "./realtime/io";
 
 const app = express();
 
@@ -26,6 +28,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 const PORT = process.env.PORT || 3002;
+const server = http.createServer(app);
 
 AppDataSource.initialize()
     .then(async () => {
@@ -44,8 +47,10 @@ AppDataSource.initialize()
 
         app.use(errorHandler);
 
-        app.listen(PORT, () => {
-            console.log(`Express server đã khởi chạy trên port ${PORT}`);
+        initIO(server, corsOrigin);
+
+        server.listen(PORT, () => {
+            console.log(`Express + Socket.IO đã khởi chạy trên port ${PORT}`);
         });
     })
     .catch((error) => console.log("Lỗi kết nối cơ sở dữ liệu: ", error));

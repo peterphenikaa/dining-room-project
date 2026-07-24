@@ -109,6 +109,38 @@ body {
     overflow: auto;
 }
 
+.realtime-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: #eef6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.realtime-msg {
+    color: #1e3a8a;
+    font-weight: 500;
+}
+
+.socket-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.socket-dot.on {
+    background: #16a34a;
+}
+
+.socket-dot.off {
+    background: #9ca3af;
+}
+
 .page {
     max-width: 1100px;
 }
