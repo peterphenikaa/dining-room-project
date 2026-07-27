@@ -3,6 +3,7 @@ import * as roomsApi from "../api/rooms";
 import { PAGE_LIMIT } from "../api/listParams";
 import type { DiningRoom } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
+import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
 import { getApiErrorMessage } from "../utils/apiError";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -74,6 +75,8 @@ export function RoomsPage() {
     useEffect(() => {
         void loadFirst();
     }, []);
+
+    useReloadOnDiningChange("room", loadFirst);
 
     function startCreate() {
         setEditingId(null);

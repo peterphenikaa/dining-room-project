@@ -1,27 +1,19 @@
 import { Response } from "express";
 import { DiningTableService } from "../services/DiningTableService";
+import {
+    createTableSchema,
+    idParamSchema,
+    updateTableSchema,
+} from "../schemas/diningSchemas";
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { emitDiningChanged } from "../realtime/io";
 import { AuthRequest } from "../types/auth";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
-import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createTable = async (req: AuthRequest, res: Response) => {
-    const { name, material, shape, dimensions, quantity, diningRoomId } = req.body;
-
-    if (!name || !material || !shape || !diningRoomId) {
-        throw new AppError("name, material, shape và diningRoomId là bắt buộc", 400);
-    }
-
-    const newTable = await DiningTableService.create({
-        name,
-        material,
-        shape,
-        dimensions,
-        quantity: parseQuantity(quantity),
-        diningRoomId,
-    });
+    const body = createTableSchema.parse(req.body);
+    const newTable = await DiningTableService.create(body);
 
     emitDiningChanged({
         entityType: "table",
@@ -40,7 +32,7 @@ export const getAllTables = async (req: AuthRequest, res: Response) => {
 };
 
 export const getTableById = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const table = await DiningTableService.getById(id);
 
     if (!table) {
@@ -51,14 +43,9 @@ export const getTableById = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateTable = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
-    const { quantity, ...rest } = req.body;
-    const parsedQty = parseOptionalQuantity(quantity);
-
-    const updatedTable = await DiningTableService.update(id, {
-        ...rest,
-        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
-    });
+    const { id } = idParamSchema.parse(req.params);
+    const body = updateTableSchema.parse(req.body);
+    const updatedTable = await DiningTableService.update(id, body);
 
     if (!updatedTable) {
         throw new AppError("Không tìm thấy bàn ăn để sửa", 404);
@@ -75,7 +62,7 @@ export const updateTable = async (req: AuthRequest, res: Response) => {
 };
 
 export const deleteTable = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const isDeleted = await DiningTableService.delete(id);
 
     if (!isDeleted) {

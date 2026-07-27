@@ -1,5 +1,10 @@
 import { Response } from "express";
 import { DiningRoomService } from "../services/DiningRoomService";
+import {
+    createRoomSchema,
+    idParamSchema,
+    updateRoomSchema,
+} from "../schemas/diningSchemas";
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { emitDiningChanged } from "../realtime/io";
 import { AuthRequest } from "../types/auth";
@@ -7,13 +12,8 @@ import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 
 export const createRoom = async (req: AuthRequest, res: Response) => {
-    const { name, area_size, style } = req.body;
-
-    if (!name || !area_size) {
-        throw new AppError("Tên phòng và diện tích là bắt buộc", 400);
-    }
-
-    const newRoom = await DiningRoomService.create({ name, area_size, style });
+    const body = createRoomSchema.parse(req.body);
+    const newRoom = await DiningRoomService.create(body);
     emitDiningChanged({
         entityType: "room",
         action: "create",
@@ -31,7 +31,7 @@ export const getAllRooms = async (req: AuthRequest, res: Response) => {
 };
 
 export const getRoomById = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const room = await DiningRoomService.getById(id);
 
     if (!room) {
@@ -42,8 +42,9 @@ export const getRoomById = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateRoom = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
-    const updatedRoom = await DiningRoomService.update(id, req.body);
+    const { id } = idParamSchema.parse(req.params);
+    const body = updateRoomSchema.parse(req.body);
+    const updatedRoom = await DiningRoomService.update(id, body);
 
     if (!updatedRoom) {
         throw new AppError("Không tìm thấy phòng ăn để sửa", 404);
@@ -60,7 +61,7 @@ export const updateRoom = async (req: AuthRequest, res: Response) => {
 };
 
 export const deleteRoom = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const isDeleted = await DiningRoomService.delete(id);
 
     if (!isDeleted) {

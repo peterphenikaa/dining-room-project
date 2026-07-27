@@ -4,6 +4,7 @@ import * as roomsApi from "../api/rooms";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
 import type { DiningRoom, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
+import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
 import { getApiErrorMessage } from "../utils/apiError";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -91,6 +92,8 @@ export function TablesPage() {
     useEffect(() => {
         void loadFirst();
     }, []);
+
+    useReloadOnDiningChange("table", loadFirst);
 
     function startCreate() {
         setEditingId(null);

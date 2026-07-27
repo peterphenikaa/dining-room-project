@@ -1,26 +1,19 @@
 import { Response } from "express";
 import { DiningChairService } from "../services/DiningChairService";
+import {
+    createChairSchema,
+    idParamSchema,
+    updateChairSchema,
+} from "../schemas/diningSchemas";
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { emitDiningChanged } from "../realtime/io";
 import { AuthRequest } from "../types/auth";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
-import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createChair = async (req: AuthRequest, res: Response) => {
-    const { name, material, color, quantity, diningTableId } = req.body;
-
-    if (!name || !material || !diningTableId) {
-        throw new AppError("name, material và diningTableId là bắt buộc", 400);
-    }
-
-    const newChair = await DiningChairService.create({
-        name,
-        material,
-        color,
-        quantity: parseQuantity(quantity),
-        diningTableId,
-    });
+    const body = createChairSchema.parse(req.body);
+    const newChair = await DiningChairService.create(body);
 
     emitDiningChanged({
         entityType: "chair",
@@ -39,7 +32,7 @@ export const getAllChairs = async (req: AuthRequest, res: Response) => {
 };
 
 export const getChairById = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const chair = await DiningChairService.getById(id);
 
     if (!chair) {
@@ -50,14 +43,9 @@ export const getChairById = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateChair = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
-    const { quantity, ...rest } = req.body;
-    const parsedQty = parseOptionalQuantity(quantity);
-
-    const updatedChair = await DiningChairService.update(id, {
-        ...rest,
-        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
-    });
+    const { id } = idParamSchema.parse(req.params);
+    const body = updateChairSchema.parse(req.body);
+    const updatedChair = await DiningChairService.update(id, body);
 
     if (!updatedChair) {
         throw new AppError("Không tìm thấy ghế để sửa", 404);
@@ -74,7 +62,7 @@ export const updateChair = async (req: AuthRequest, res: Response) => {
 };
 
 export const deleteChair = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const isDeleted = await DiningChairService.delete(id);
 
     if (!isDeleted) {

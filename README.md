@@ -34,6 +34,7 @@ Demo: `admin@demo.com` / `user@demo.com` — mật khẩu `demo`.
 
 ### Validation
 - **Zod** cho Auth (login / register + `.refine` confirmPassword)
+- **Zod** cho body/params dining (create/update 5 entity + UUID `id`)
 - ZodError → HTTP 400 trong `errorHandler`
 
 ### Phân trang

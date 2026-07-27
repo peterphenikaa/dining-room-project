@@ -4,6 +4,7 @@ import * as tablesApi from "../api/tables";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
 import type { DiningAccessory, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
+import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
 import { getApiErrorMessage } from "../utils/apiError";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -89,6 +90,8 @@ export function AccessoriesPage() {
     useEffect(() => {
         void loadFirst();
     }, []);
+
+    useReloadOnDiningChange("accessory", loadFirst);
 
     function startCreate() {
         setEditingId(null);

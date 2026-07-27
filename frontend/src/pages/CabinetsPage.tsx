@@ -4,6 +4,7 @@ import * as roomsApi from "../api/rooms";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
 import type { DiningCabinet, DiningRoom } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
+import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
 import { getApiErrorMessage } from "../utils/apiError";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
@@ -90,6 +91,8 @@ export function CabinetsPage() {
     useEffect(() => {
         void loadFirst();
     }, []);
+
+    useReloadOnDiningChange("cabinet", loadFirst);
 
     function startCreate() {
         setEditingId(null);

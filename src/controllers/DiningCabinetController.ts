@@ -1,26 +1,19 @@
 import { Response } from "express";
 import { DiningCabinetService } from "../services/DiningCabinetService";
+import {
+    createCabinetSchema,
+    idParamSchema,
+    updateCabinetSchema,
+} from "../schemas/diningSchemas";
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { emitDiningChanged } from "../realtime/io";
 import { AuthRequest } from "../types/auth";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
-import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createCabinet = async (req: AuthRequest, res: Response) => {
-    const { name, material, dimensions, quantity, diningRoomId } = req.body;
-
-    if (!name || !material || !diningRoomId) {
-        throw new AppError("name, material và diningRoomId là bắt buộc", 400);
-    }
-
-    const newCabinet = await DiningCabinetService.create({
-        name,
-        material,
-        dimensions,
-        quantity: parseQuantity(quantity),
-        diningRoomId,
-    });
+    const body = createCabinetSchema.parse(req.body);
+    const newCabinet = await DiningCabinetService.create(body);
 
     emitDiningChanged({
         entityType: "cabinet",
@@ -39,7 +32,7 @@ export const getAllCabinets = async (req: AuthRequest, res: Response) => {
 };
 
 export const getCabinetById = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const cabinet = await DiningCabinetService.getById(id);
 
     if (!cabinet) {
@@ -50,14 +43,9 @@ export const getCabinetById = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateCabinet = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
-    const { quantity, ...rest } = req.body;
-    const parsedQty = parseOptionalQuantity(quantity);
-
-    const updatedCabinet = await DiningCabinetService.update(id, {
-        ...rest,
-        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
-    });
+    const { id } = idParamSchema.parse(req.params);
+    const body = updateCabinetSchema.parse(req.body);
+    const updatedCabinet = await DiningCabinetService.update(id, body);
 
     if (!updatedCabinet) {
         throw new AppError("Không tìm thấy tủ để sửa", 404);
@@ -74,7 +62,7 @@ export const updateCabinet = async (req: AuthRequest, res: Response) => {
 };
 
 export const deleteCabinet = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const isDeleted = await DiningCabinetService.delete(id);
 
     if (!isDeleted) {

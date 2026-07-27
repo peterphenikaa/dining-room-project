@@ -1,25 +1,19 @@
 import { Response } from "express";
 import { DiningAccessoryService } from "../services/DiningAccessoryService";
+import {
+    createAccessorySchema,
+    idParamSchema,
+    updateAccessorySchema,
+} from "../schemas/diningSchemas";
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { emitDiningChanged } from "../realtime/io";
 import { AuthRequest } from "../types/auth";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
-import { parseOptionalQuantity, parseQuantity } from "../utils/quantity";
 
 export const createAccessory = async (req: AuthRequest, res: Response) => {
-    const { name, type, quantity, diningTableId } = req.body;
-
-    if (!name || !type || !diningTableId) {
-        throw new AppError("name, type và diningTableId là bắt buộc", 400);
-    }
-
-    const newAccessory = await DiningAccessoryService.create({
-        name,
-        type,
-        quantity: parseQuantity(quantity),
-        diningTableId,
-    });
+    const body = createAccessorySchema.parse(req.body);
+    const newAccessory = await DiningAccessoryService.create(body);
 
     emitDiningChanged({
         entityType: "accessory",
@@ -38,7 +32,7 @@ export const getAllAccessories = async (req: AuthRequest, res: Response) => {
 };
 
 export const getAccessoryById = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const accessory = await DiningAccessoryService.getById(id);
 
     if (!accessory) {
@@ -49,14 +43,9 @@ export const getAccessoryById = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateAccessory = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
-    const { quantity, ...rest } = req.body;
-    const parsedQty = parseOptionalQuantity(quantity);
-
-    const updatedAccessory = await DiningAccessoryService.update(id, {
-        ...rest,
-        ...(parsedQty !== undefined ? { quantity: parsedQty } : {}),
-    });
+    const { id } = idParamSchema.parse(req.params);
+    const body = updateAccessorySchema.parse(req.body);
+    const updatedAccessory = await DiningAccessoryService.update(id, body);
 
     if (!updatedAccessory) {
         throw new AppError("Không tìm thấy phụ kiện để sửa", 404);
@@ -73,7 +62,7 @@ export const updateAccessory = async (req: AuthRequest, res: Response) => {
 };
 
 export const deleteAccessory = async (req: AuthRequest, res: Response) => {
-    const id = req.params.id as string;
+    const { id } = idParamSchema.parse(req.params);
     const isDeleted = await DiningAccessoryService.delete(id);
 
     if (!isDeleted) {
