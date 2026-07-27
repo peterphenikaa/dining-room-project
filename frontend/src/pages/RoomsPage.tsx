@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import * as roomsApi from "../api/rooms";
+import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { PAGE_LIMIT } from "../api/listParams";
 import type { DiningRoom } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
@@ -8,6 +9,8 @@ import { getApiErrorMessage } from "../utils/apiError";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { CursorPager } from "../components/CursorPager";
+import { EntityImageField } from "../components/EntityImageField";
+import { EntityThumb } from "../components/EntityThumb";
 
 const emptyForm = { name: "", area_size: "20", style: "" };
 
@@ -25,6 +28,10 @@ export function RoomsPage() {
     const [deleting, setDeleting] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [editingImage, setEditingImage] = useState<{ url?: string | null; thumb?: string | null }>({});
+    const [removingImage, setRemovingImage] = useState(false);
+    const [imageResetKey, setImageResetKey] = useState(0);
 
     async function loadFirst() {
         setLoading(true);
@@ -78,9 +85,16 @@ export function RoomsPage() {
 
     useReloadOnDiningChange("room", loadFirst);
 
+    function clearImageField() {
+        setImageFile(null);
+        setEditingImage({});
+        setImageResetKey((k) => k + 1);
+    }
+
     function startCreate() {
         setEditingId(null);
         setForm(emptyForm);
+        clearImageField();
     }
 
     function startEdit(room: DiningRoom) {
@@ -90,6 +104,9 @@ export function RoomsPage() {
             area_size: String(room.area_size),
             style: room.style || "",
         });
+        setImageFile(null);
+        setEditingImage({ url: room.imageUrl, thumb: room.imageThumbUrl });
+        setImageResetKey((k) => k + 1);
     }
 
     async function handleSubmit(e: FormEvent) {
@@ -103,15 +120,36 @@ export function RoomsPage() {
                 area_size: Number(form.area_size),
                 style: form.style.trim() || undefined,
             };
-            if (editingId) await roomsApi.updateRoom(editingId, body);
-            else await roomsApi.createRoom(body);
+            const saved = editingId
+                ? await roomsApi.updateRoom(editingId, body)
+                : await roomsApi.createRoom(body);
+            if (imageFile) {
+                await uploadEntityImage<DiningRoom>("rooms", saved.id, imageFile);
+            }
             setForm(emptyForm);
             setEditingId(null);
+            clearImageField();
             await loadFirst();
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
             setSaving(false);
+        }
+    }
+
+    async function handleRemoveImage() {
+        if (!canWrite || !editingId) return;
+        setRemovingImage(true);
+        setError(null);
+        try {
+            const updated = await deleteEntityImage<DiningRoom>("rooms", editingId);
+            setEditingImage({ url: updated.imageUrl, thumb: updated.imageThumbUrl });
+            setImageFile(null);
+            await loadFirst();
+        } catch (err) {
+            setError(getApiErrorMessage(err));
+        } finally {
+            setRemovingImage(false);
         }
     }
 
@@ -154,6 +192,7 @@ export function RoomsPage() {
                         <table>
                             <thead>
                                 <tr>
+                                    <th>Ảnh</th>
                                     <th>Tên</th>
                                     <th>Diện tích</th>
                                     <th>Style</th>
@@ -163,6 +202,13 @@ export function RoomsPage() {
                             <tbody>
                                 {items.map((room) => (
                                     <tr key={room.id}>
+                                        <td>
+                                            <EntityThumb
+                                                thumbUrl={room.imageThumbUrl}
+                                                url={room.imageUrl}
+                                                alt={room.name}
+                                            />
+                                        </td>
                                         <td>{room.name}</td>
                                         <td>{room.area_size}</td>
                                         <td>{room.style || "—"}</td>
@@ -188,7 +234,7 @@ export function RoomsPage() {
                                 ))}
                                 {!loading && items.length === 0 && (
                                     <tr>
-                                        <td colSpan={canWrite ? 4 : 3}>Chưa có dữ liệu</td>
+                                        <td colSpan={canWrite ? 5 : 4}>Chưa có dữ liệu</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -234,6 +280,13 @@ export function RoomsPage() {
                                     onChange={(e) => setForm({ ...form, style: e.target.value })}
                                 />
                             </label>
+                            <EntityImageField
+                                resetKey={imageResetKey}
+                                previewUrl={editingImage.thumb || editingImage.url}
+                                onFileChange={setImageFile}
+                                onRemoveExisting={editingId ? () => void handleRemoveImage() : undefined}
+                                removing={removingImage}
+                            />
                             <div className="actions">
                                 <button type="submit" disabled={saving}>
                                     {saving ? "Đang lưu..." : editingId ? "Cập nhật" : "Tạo mới"}

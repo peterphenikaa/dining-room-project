@@ -11,35 +11,88 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3306:3306"
+      - "${DB_HOST_PORT}:${DB_PORT}"
     volumes:
       - db_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: dining_redis
+    restart: always
+    ports:
+      - "${REDIS_HOST_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis_data:/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: dining_minio
+    restart: always
+    command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "${MINIO_PUBLIC_PORT}:${MINIO_PORT}"
+      - "${MINIO_CONSOLE_HOST_PORT}:${MINIO_CONSOLE_PORT}"
+    volumes:
+      - minio_data:/data
 
   app:
     build: .
     container_name: express_app
     restart: always
     ports:
-      - "3002:3002"
+      - "${APP_HOST_PORT}:${PORT}"
     env_file:
       - .env
     depends_on:
       - db
+      - redis
+      - minio
     volumes:
       - .:/app
-      - /app/node_modules
+      - app_node_modules:/app/node_modules
+
+  worker:
+    build: .
+    container_name: dining_worker
+    restart: always
+    command: ["npx", "nodemon", "--watch", "src", "--ext", "ts,json", "--exec", "npx tsc && node dist/worker.js", "--legacy-watch"]
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - minio
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+    container_name: dining_frontend
+    restart: always
+    ports:
+      - "${FRONTEND_HOST_PORT}:80"
+    depends_on:
+      - app
 
   phpmyadmin:
     image: phpmyadmin:5
     container_name: mysql_phpmyadmin
     restart: always
     ports:
-      - "8081:80"
+      - "${PHPMYADMIN_HOST_PORT}:80"
     env_file:
       - .env
     environment:
       PMA_HOST: db
-      PMA_PORT: 3306
+      PMA_PORT: ${DB_PORT}
       PMA_USER: ${MYSQL_USER}
       PMA_PASSWORD: ${MYSQL_PASSWORD}
       UPLOAD_LIMIT: 64M
@@ -48,3 +101,6 @@ services:
 
 volumes:
   db_data:
+  redis_data:
+  minio_data:
+  app_node_modules:

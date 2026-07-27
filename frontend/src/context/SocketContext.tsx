@@ -10,7 +10,9 @@ import {
 import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
+import { resolveApiUrl } from "../utils/apiUrl";
+
+const API_URL = resolveApiUrl();
 
 export type DiningChangedEvent = {
     entityType: "room" | "table" | "cabinet" | "chair" | "accessory";

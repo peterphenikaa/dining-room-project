@@ -34,6 +34,8 @@ export type DiningRoom = {
     name: string;
     area_size: number;
     style?: string | null;
+    imageUrl?: string | null;
+    imageThumbUrl?: string | null;
 };
 
 export type DiningTable = {
@@ -45,6 +47,8 @@ export type DiningTable = {
     quantity: number;
     diningRoom?: DiningRoom | null;
     diningRoomId?: string;
+    imageUrl?: string | null;
+    imageThumbUrl?: string | null;
 };
 
 export type DiningCabinet = {
@@ -55,6 +59,8 @@ export type DiningCabinet = {
     quantity: number;
     diningRoom?: DiningRoom | null;
     diningRoomId?: string;
+    imageUrl?: string | null;
+    imageThumbUrl?: string | null;
 };
 
 export type DiningChair = {
@@ -65,6 +71,8 @@ export type DiningChair = {
     quantity: number;
     diningTable?: DiningTable | null;
     diningTableId?: string;
+    imageUrl?: string | null;
+    imageThumbUrl?: string | null;
 };
 
 export type DiningAccessory = {
@@ -74,4 +82,6 @@ export type DiningAccessory = {
     quantity: number;
     diningTable?: DiningTable | null;
     diningTableId?: string;
+    imageUrl?: string | null;
+    imageThumbUrl?: string | null;
 };

@@ -1,18 +1,15 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3002";
+import { resolveApiUrl } from "../utils/apiUrl";
 
 /**
  * Axios client dùng httpOnly cookie (B2/B2b).
  * withCredentials: true — browser tự gửi access_token + refresh_token.
  */
 export const api = axios.create({
-    baseURL: API_URL,
+    baseURL: resolveApiUrl(),
     withCredentials: true,
-    headers: {
-        "Content-Type": "application/json",
-    },
 });
+
 
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 

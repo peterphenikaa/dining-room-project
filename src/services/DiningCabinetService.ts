@@ -2,6 +2,7 @@ import { AppDataSource } from "../data-source";
 import { DiningCabinet } from "../entity/DiningCabinet";
 import { DiningRoom } from "../entity/DiningRoom";
 import type { CursorPaginationQuery } from "../schemas/paginationSchemas";
+import { EntityImageService } from "./EntityImageService";
 import { AppError } from "../utils/AppError";
 import { paginateByCursor } from "../utils/cursorPagination";
 
@@ -70,6 +71,9 @@ export class DiningCabinetService {
     }
 
     static async delete(id: string) {
+        const cabinet = await cabinetRepository.findOneBy({ id });
+        if (!cabinet) return false;
+        await EntityImageService.cleanupKeys(cabinet);
         const result = await cabinetRepository.delete(id);
         return result.affected !== 0;
     }

@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import * as chairsApi from "../api/chairs";
 import * as tablesApi from "../api/tables";
+import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
 import type { DiningChair, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
@@ -9,6 +10,8 @@ import { getApiErrorMessage } from "../utils/apiError";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { CursorPager } from "../components/CursorPager";
+import { EntityImageField } from "../components/EntityImageField";
+import { EntityThumb } from "../components/EntityThumb";
 
 const emptyForm = {
     name: "",
@@ -33,6 +36,10 @@ export function ChairsPage() {
     const [deleting, setDeleting] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [editingImage, setEditingImage] = useState<{ url?: string | null; thumb?: string | null }>({});
+    const [removingImage, setRemovingImage] = useState(false);
+    const [imageResetKey, setImageResetKey] = useState(0);
 
     async function loadFirst() {
         setLoading(true);
@@ -97,6 +104,9 @@ export function ChairsPage() {
     function startCreate() {
         setEditingId(null);
         setForm({ ...emptyForm, diningTableId: tables[0]?.id || "" });
+        setImageFile(null);
+        setEditingImage({});
+        setImageResetKey((k) => k + 1);
     }
 
     function startEdit(row: DiningChair) {
@@ -108,6 +118,9 @@ export function ChairsPage() {
             quantity: String(row.quantity ?? 1),
             diningTableId: row.diningTable?.id || "",
         });
+        setImageFile(null);
+        setEditingImage({ url: row.imageUrl, thumb: row.imageThumbUrl });
+        setImageResetKey((k) => k + 1);
     }
 
     async function handleSubmit(e: FormEvent) {
@@ -123,14 +136,34 @@ export function ChairsPage() {
                 quantity: Number(form.quantity),
                 diningTableId: form.diningTableId,
             };
-            if (editingId) await chairsApi.updateChair(editingId, body);
-            else await chairsApi.createChair(body);
+            const saved = editingId
+                ? await chairsApi.updateChair(editingId, body)
+                : await chairsApi.createChair(body);
+            if (imageFile) {
+                await uploadEntityImage<DiningChair>("chairs", saved.id, imageFile);
+            }
             startCreate();
             await loadFirst();
         } catch (err) {
             setError(getApiErrorMessage(err));
         } finally {
             setSaving(false);
+        }
+    }
+
+    async function handleRemoveImage() {
+        if (!canWrite || !editingId) return;
+        setRemovingImage(true);
+        setError(null);
+        try {
+            const updated = await deleteEntityImage<DiningChair>("chairs", editingId);
+            setEditingImage({ url: updated.imageUrl, thumb: updated.imageThumbUrl });
+            setImageFile(null);
+            await loadFirst();
+        } catch (err) {
+            setError(getApiErrorMessage(err));
+        } finally {
+            setRemovingImage(false);
         }
     }
 
@@ -173,6 +206,7 @@ export function ChairsPage() {
                         <table>
                             <thead>
                                 <tr>
+                                    <th>Ảnh</th>
                                     <th>Tên</th>
                                     <th>Chất liệu</th>
                                     <th>Màu</th>
@@ -184,6 +218,13 @@ export function ChairsPage() {
                             <tbody>
                                 {items.map((row) => (
                                     <tr key={row.id}>
+                                        <td>
+                                            <EntityThumb
+                                                thumbUrl={row.imageThumbUrl}
+                                                url={row.imageUrl}
+                                                alt={row.name}
+                                            />
+                                        </td>
                                         <td>{row.name}</td>
                                         <td>{row.material}</td>
                                         <td>{row.color || "—"}</td>
@@ -211,7 +252,7 @@ export function ChairsPage() {
                                 ))}
                                 {!loading && items.length === 0 && (
                                     <tr>
-                                        <td colSpan={canWrite ? 6 : 5}>Chưa có dữ liệu</td>
+                                        <td colSpan={canWrite ? 7 : 6}>Chưa có dữ liệu</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -280,6 +321,13 @@ export function ChairsPage() {
                                     ))}
                                 </select>
                             </label>
+                            <EntityImageField
+                                resetKey={imageResetKey}
+                                previewUrl={editingImage.thumb || editingImage.url}
+                                onFileChange={setImageFile}
+                                onRemoveExisting={editingId ? () => void handleRemoveImage() : undefined}
+                                removing={removingImage}
+                            />
                             <div className="actions">
                                 <button type="submit" disabled={saving || !tables.length}>
                                     {saving ? "Đang lưu..." : editingId ? "Cập nhật" : "Tạo mới"}

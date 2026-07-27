@@ -42,7 +42,7 @@ function authenticateSocket(socket: Socket): AuthUser {
     return verifyAccessToken(token);
 }
 
-export function initIO(httpServer: HttpServer, corsOrigin: string): Server {
+export function initIO(httpServer: HttpServer, corsOrigin: string | string[]): Server {
     io = new Server(httpServer, {
         cors: {
             origin: corsOrigin,

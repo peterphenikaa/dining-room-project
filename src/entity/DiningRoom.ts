@@ -16,6 +16,18 @@ export class DiningRoom {
     @Column({ nullable: true })
     style: string
 
+    @Column({ type: "varchar", length: 500, nullable: true })
+    imageUrl: string | null
+
+    @Column({ type: "varchar", length: 500, nullable: true })
+    imageKey: string | null
+
+    @Column({ type: "varchar", length: 500, nullable: true })
+    imageThumbUrl: string | null
+
+    @Column({ type: "varchar", length: 500, nullable: true })
+    imageThumbKey: string | null
+
     @OneToMany(() => DiningTable, (table) => table.diningRoom)
     tables: DiningTable[]
 

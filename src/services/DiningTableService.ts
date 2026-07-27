@@ -2,6 +2,7 @@ import { AppDataSource } from "../data-source";
 import { DiningTable } from "../entity/DiningTable";
 import { DiningRoom } from "../entity/DiningRoom";
 import type { CursorPaginationQuery } from "../schemas/paginationSchemas";
+import { EntityImageService } from "./EntityImageService";
 import { AppError } from "../utils/AppError";
 import { paginateByCursor } from "../utils/cursorPagination";
 
@@ -76,6 +77,9 @@ export class DiningTableService {
     }
 
     static async delete(id: string) {
+        const table = await tableRepository.findOneBy({ id });
+        if (!table) return false;
+        await EntityImageService.cleanupKeys(table);
         const result = await tableRepository.delete(id);
         return result.affected !== 0;
     }

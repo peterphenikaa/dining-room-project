@@ -1,53 +1,55 @@
 # Quản lý Phòng ăn / Bàn ăn
 
-API Express + TypeORM + MySQL (Docker) · SPA React (Vite) · Socket.IO realtime.
+API Express + TypeORM + MySQL · SPA React · Socket.IO · Redis/BullMQ · MinIO (S3).
 
-## Chạy nhanh
+## Chạy nhanh (Docker full stack)
 
 ```bash
-# Backend (API :3002, MySQL, phpMyAdmin :8081)
-docker compose up -d
-
-# Frontend (:5173)
-cd frontend
-npm install
-npm run dev
+docker compose up -d --build
+docker compose exec app npm run migration:run
 ```
 
-Demo: `admin@demo.com` / `user@demo.com` — mật khẩu `demo`.
+| Service | URL |
+|---------|-----|
+| FE (Nginx) | http://localhost:5174 |
+| API | http://localhost:3002 |
+| MinIO API / Console | http://localhost:9000 / http://localhost:9001 |
+| phpMyAdmin | http://localhost:8081 |
+| Redis | localhost:6379 |
 
+Demo: `admin@demo.com` / `user@demo.com` — mật khẩu `demo`.  
+MinIO: `minioadmin` / `minioadmin`.
+
+FE local (hot reload): `cd frontend && npm run dev` → :5173 (API vẫn Docker :3002).
+
+> Nếu `docker compose build` lỗi ASCII trên Windows (path tiếng Việt):  
+> `$env:DOCKER_BUILDKIT=0; $env:COMPOSE_DOCKER_CLI_BUILD=0; docker compose up -d --build`
+
+---
+
+## Ảnh + MinIO + BullMQ
+
+- Mỗi row (room/table/cabinet/chair/accessory): `imageUrl` / `imageKey` + `imageThumbUrl` / `imageThumbKey`
+- Upload: `POST /api/{rooms|tables|...}/:id/image` (multipart field `image`) → lưu gốc lên MinIO (AWS S3 SDK) → enqueue job `process-image`
+- Worker (`dining_worker`): Sharp resize → WebP thumb → cập nhật DB
+- Xóa ảnh: `DELETE /api/.../:id/image`
 ---
 
 ## Đã làm được
 
 ### Domain & CRUD
 - 5 entity: **Room → Table / Cabinet**, **Table → Chair / Accessory** (FK + CASCADE)
-- CRUD đầy đủ; cột `quantity` (≥ 1) trên Table / Cabinet / Chair / Accessory
+- CRUD + ảnh; cột `quantity` (≥ 1) trên Table / Cabinet / Chair / Accessory
 - Tầng **Routes → Controllers → Services**; envelope `{ status, message, data }`
-- Error tập trung: `AppError` + `errorHandler`
 
 ### Auth & phân quyền
-- JWT **access + refresh** trong cookie httpOnly
-- Register / Login / Me / Logout / Refresh
-- **RBAC**: `admin` ghi (POST/PUT/DELETE); user đã login chỉ đọc (GET)
-- FE ẩn nút ghi theo role (`useCanWrite`); BE vẫn chặn thật
+- JWT access + refresh httpOnly cookie; RBAC admin ghi / user đọc
 
-### Validation
-- **Zod** cho Auth (login / register + `.refine` confirmPassword)
-- **Zod** cho body/params dining (create/update 5 entity + UUID `id`)
-- ZodError → HTTP 400 trong `errorHandler`
+### Validation / Pagination / Realtime
+- Zod · cursor pagination · Socket.IO `dining:changed`
 
-### Phân trang
-- GET list **cursor-based** (`cursor`, `limit`) → `{ items, nextCursor, hasMore }`
-- FE: 5 rows/trang, nút **Trước / Sau**
-
-### Realtime
-- **Socket.IO** (cùng port API): auth cookie JWT, room `dining`
-- Sau create / update / delete → broadcast `dining:changed` → banner FE
-
-### Frontend
-- Login / Register, layout AppShell, CRUD 5 màn
-- Axios `withCredentials` + refresh khi 401
+### Ops
+- Docker Compose: `app`, `worker`, `frontend`, `db`, `redis`, `minio`, `phpmyadmin`
 
 ---
 
@@ -55,6 +57,6 @@ Demo: `admin@demo.com` / `user@demo.com` — mật khẩu `demo`.
 
 | Tầng | Công nghệ |
 |------|-----------|
-| BE | Node, Express 5, TypeORM, MySQL 8, Zod, Socket.IO, JWT, bcrypt |
-| FE | React 19, TypeScript, Vite, React Router, Axios, socket.io-client |
-| Ops | Docker Compose (app + MySQL + phpMyAdmin) |
+| BE | Node, Express 5, TypeORM, MySQL 8, Zod, Socket.IO, BullMQ, ioredis, Multer, Sharp, AWS S3 SDK |
+| FE | React 19, TypeScript, Vite, Axios, socket.io-client, Nginx |
+| Storage / Queue | MinIO (S3), Redis |
