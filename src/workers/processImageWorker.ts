@@ -1,39 +1,9 @@
 import { Worker, Job } from "bullmq";
 import sharp from "sharp";
-import { Repository } from "typeorm";
-import { AppDataSource } from "../data-source";
-import { DiningAccessory } from "../entity/DiningAccessory";
-import { DiningCabinet } from "../entity/DiningCabinet";
-import { DiningChair } from "../entity/DiningChair";
-import { DiningRoom } from "../entity/DiningRoom";
-import { DiningTable } from "../entity/DiningTable";
 import { getRedisConnection } from "../queues/connection";
 import { PROCESS_IMAGE_QUEUE, ProcessImageJob } from "../queues/processImageQueue";
-import type { DiningEntityType } from "../realtime/io";
 import { deleteObject, getObjectBuffer, putObject, publicUrlForKey } from "../storage/s3";
-
-type ImageFields = {
-    id: string;
-    imageUrl: string | null;
-    imageKey: string | null;
-    imageThumbUrl: string | null;
-    imageThumbKey: string | null;
-};
-
-function repoFor(entityType: DiningEntityType): Repository<ImageFields> {
-    switch (entityType) {
-        case "room":
-            return AppDataSource.getRepository(DiningRoom) as Repository<ImageFields>;
-        case "table":
-            return AppDataSource.getRepository(DiningTable) as Repository<ImageFields>;
-        case "cabinet":
-            return AppDataSource.getRepository(DiningCabinet) as Repository<ImageFields>;
-        case "chair":
-            return AppDataSource.getRepository(DiningChair) as Repository<ImageFields>;
-        case "accessory":
-            return AppDataSource.getRepository(DiningAccessory) as Repository<ImageFields>;
-    }
-}
+import { imageRepoFor } from "../utils/imageEntityRepo";
 
 async function processImage(job: Job<ProcessImageJob>) {
     const { entityType, entityId, originalKey } = job.data;
@@ -41,7 +11,7 @@ async function processImage(job: Job<ProcessImageJob>) {
         `[process-image] attempt ${job.attemptsMade + 1}/${job.opts.attempts} ${entityType}/${entityId} key=${originalKey}`
     );
 
-    const repo = repoFor(entityType);
+    const repo = imageRepoFor(entityType);
     const entity = await repo.findOneBy({ id: entityId });
     if (!entity) {
         console.warn(`[process-image] entity không còn tồn tại, bỏ qua`);

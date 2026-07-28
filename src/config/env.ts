@@ -1,8 +1,3 @@
-/**
- * Đọc config từ process.env — production chỉ sửa .env, không hardcode port/host trong code.
- * Fallback chỉ dùng khi thiếu env (local/dev).
- */
-
 function env(name: string, fallback?: string): string {
     const v = process.env[name];
     if (v !== undefined && v !== "") return v;
@@ -43,7 +38,6 @@ export const redisConfig = {
     port: envInt("REDIS_PORT", 6379),
 };
 
-/** Endpoint nội bộ (app/worker → MinIO trong Docker: minio:9000). */
 export const minioConfig = {
     endpointHost: env("MINIO_ENDPOINT", "localhost"),
     endpointPort: envInt("MINIO_PORT", 9000),
@@ -52,11 +46,9 @@ export const minioConfig = {
     secretKey: env("MINIO_SECRET_KEY", "minioadmin"),
     bucket: env("MINIO_BUCKET", "dining-images"),
     region: env("MINIO_REGION", "us-east-1"),
-    /** Host/port mà browser gọi (thường localhost khi map port ra máy). */
     publicHost: env("MINIO_PUBLIC_HOST", "localhost"),
     publicPort: envInt("MINIO_PUBLIC_PORT", envInt("MINIO_PORT", 9000)),
     publicUseSsl: envBool("MINIO_PUBLIC_USE_SSL", envBool("MINIO_USE_SSL", false)),
-    /** Nếu set đầy đủ thì ưu tiên hơn publicHost/port (CDN / reverse proxy). */
     publicUrlOverride: process.env.MINIO_PUBLIC_URL?.replace(/\/$/, "") || "",
 };
 
@@ -65,7 +57,6 @@ export function minioInternalEndpoint(): string {
     return `${scheme}://${minioConfig.endpointHost}:${minioConfig.endpointPort}`;
 }
 
-/** Base URL FE/browser dùng để GET object (public read). */
 export function minioPublicBaseUrl(): string {
     if (minioConfig.publicUrlOverride) return minioConfig.publicUrlOverride;
     const scheme = minioConfig.publicUseSsl ? "https" : "http";

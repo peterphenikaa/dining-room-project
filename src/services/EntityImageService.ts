@@ -1,38 +1,9 @@
 import { randomUUID } from "crypto";
-import { Repository } from "typeorm";
-import { AppDataSource } from "../data-source";
-import { DiningAccessory } from "../entity/DiningAccessory";
-import { DiningCabinet } from "../entity/DiningCabinet";
-import { DiningChair } from "../entity/DiningChair";
-import { DiningRoom } from "../entity/DiningRoom";
-import { DiningTable } from "../entity/DiningTable";
 import { enqueueProcessImage } from "../queues/processImageQueue";
 import type { DiningEntityType } from "../realtime/io";
 import { deleteObjects, putObject } from "../storage/s3";
 import { AppError } from "../utils/AppError";
-
-type ImageEntity = {
-    id: string;
-    imageUrl: string | null;
-    imageKey: string | null;
-    imageThumbUrl: string | null;
-    imageThumbKey: string | null;
-};
-
-function repoFor(entityType: DiningEntityType): Repository<ImageEntity> {
-    switch (entityType) {
-        case "room":
-            return AppDataSource.getRepository(DiningRoom) as Repository<ImageEntity>;
-        case "table":
-            return AppDataSource.getRepository(DiningTable) as Repository<ImageEntity>;
-        case "cabinet":
-            return AppDataSource.getRepository(DiningCabinet) as Repository<ImageEntity>;
-        case "chair":
-            return AppDataSource.getRepository(DiningChair) as Repository<ImageEntity>;
-        case "accessory":
-            return AppDataSource.getRepository(DiningAccessory) as Repository<ImageEntity>;
-    }
-}
+import { imageRepoFor } from "../utils/imageEntityRepo";
 
 function extFromMime(mime: string): string {
     if (mime === "image/png") return "png";
@@ -47,7 +18,7 @@ export class EntityImageService {
         entityId: string,
         file: Express.Multer.File
     ) {
-        const repo = repoFor(entityType);
+        const repo = imageRepoFor(entityType);
         const entity = await repo.findOneBy({ id: entityId });
         if (!entity) {
             throw new AppError("Không tìm thấy bản ghi", 404);
@@ -81,7 +52,7 @@ export class EntityImageService {
     }
 
     static async remove(entityType: DiningEntityType, entityId: string) {
-        const repo = repoFor(entityType);
+        const repo = imageRepoFor(entityType);
         const entity = await repo.findOneBy({ id: entityId });
         if (!entity) {
             throw new AppError("Không tìm thấy bản ghi", 404);

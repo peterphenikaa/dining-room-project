@@ -1,7 +1,6 @@
 import { ConnectionOptions } from "bullmq";
 import { redisConfig } from "../config/env";
 
-/** Kết nối Redis dùng chung cho Queue + Worker (BullMQ / ioredis). */
 export function getRedisConnection(): ConnectionOptions {
     return {
         host: redisConfig.host,
