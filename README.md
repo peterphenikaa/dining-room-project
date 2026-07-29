@@ -2,16 +2,28 @@
 
 API Express + TypeORM + MySQL · SPA React · Socket.IO · Redis/BullMQ · MinIO (S3).
 
-## Chạy nhanh (Docker full stack)
+## Chạy nhanh
+
+### Backend (Docker)
 
 ```bash
 docker compose up -d --build
 docker compose exec app npm run migration:run
 ```
 
+### Frontend (local)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+FE: http://localhost:5173 (Vite proxy `/api` + `/socket.io` → API :3002)
+
 | Service | URL |
 |---------|-----|
-| FE (Nginx) | http://localhost:5174 |
+| FE (local Vite) | http://localhost:5173 |
 | API | http://localhost:3002 |
 | MinIO API / Console | http://localhost:9000 / http://localhost:9001 |
 | phpMyAdmin | http://localhost:8081 |
@@ -19,8 +31,6 @@ docker compose exec app npm run migration:run
 
 Demo: `admin@demo.com` / `user@demo.com` — mật khẩu `demo`.  
 MinIO: `minioadmin` / `minioadmin`.
-
-FE local (hot reload): `cd frontend && npm run dev` → :5173 (API vẫn Docker :3002).
 
 > Nếu `docker compose build` lỗi ASCII trên Windows (path tiếng Việt):  
 > `$env:DOCKER_BUILDKIT=0; $env:COMPOSE_DOCKER_CLI_BUILD=0; docker compose up -d --build`
@@ -49,7 +59,7 @@ FE local (hot reload): `cd frontend && npm run dev` → :5173 (API vẫn Docker 
 - Zod · cursor pagination · Socket.IO `dining:changed`
 
 ### Ops
-- Docker Compose: `app`, `worker`, `frontend`, `db`, `redis`, `minio`, `phpmyadmin`
+- Docker Compose: `app`, `worker`, `db`, `redis`, `minio`, `phpmyadmin` · FE chạy local (`npm run dev`)
 
 ---
 
@@ -58,5 +68,5 @@ FE local (hot reload): `cd frontend && npm run dev` → :5173 (API vẫn Docker 
 | Tầng | Công nghệ |
 |------|-----------|
 | BE | Node, Express 5, TypeORM, MySQL 8, Zod, Socket.IO, BullMQ, ioredis, Multer, Sharp, AWS S3 SDK |
-| FE | React 19, TypeScript, Vite, Axios, socket.io-client, Nginx |
+| FE | React 19, TypeScript, Vite, Axios, socket.io-client |
 | Storage / Queue | MinIO (S3), Redis |

@@ -1,6 +1,10 @@
-/** Base URL API: dev → :3002; production (nginx Docker) → same-origin. */
+/**
+ * Base URL API.
+ * - Có VITE_API_URL → dùng trực tiếp
+ * - Để trống → same-origin (Vite proxy `/api` + `/socket.io` → :3002)
+ */
 export function resolveApiUrl(): string {
-    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL as string;
-    if (import.meta.env.DEV) return "http://localhost:3002";
+    const configured = import.meta.env.VITE_API_URL as string | undefined;
+    if (configured !== undefined && configured !== "") return configured;
     return "";
 }

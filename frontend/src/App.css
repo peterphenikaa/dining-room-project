@@ -53,6 +53,15 @@
 
 .sidebar-footer { display:flex; flex-direction:column; gap:10px; padding-top: 12px; border-top: 1px solid var(--sidebar-border); }
 .user-chip { display:flex; flex-direction:column; gap:6px; font-size:.85rem; padding:0 4px; word-break: break-all; }
+.sidebar-footer .secondary {
+  background: rgba(246,241,232,0.88);
+  color: #1f1f1a;
+  border: 1px solid rgba(246,241,232,0.92);
+  font-weight: 700;
+}
+.sidebar-footer .secondary:hover:not(:disabled) {
+  background: #ffffff;
+}
 .shell-main { padding: 24px 26px; overflow: auto; }
 
 .realtime-bar {
