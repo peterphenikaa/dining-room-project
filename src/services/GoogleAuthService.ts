@@ -63,7 +63,7 @@ function applyGoogleProfile(target: AuthIdentity, identity: GoogleIdentity) {
 }
 
 export class GoogleAuthService {
-    static async buildAuthorizationUrl(): Promise<string> {
+    static async buildAuthorizationUrl(opts?: { linkUserId?: string }): Promise<string> {
         assertGoogleOAuthConfigured();
 
         const state = randomUrlSafe(24);
@@ -72,6 +72,7 @@ export class GoogleAuthService {
         await saveGoogleOAuthPending(state, {
             codeVerifier,
             createdAt: Date.now(),
+            ...(opts?.linkUserId ? { linkUserId: opts.linkUserId } : {}),
         });
 
         const params = new URLSearchParams({
@@ -96,14 +97,38 @@ export class GoogleAuthService {
             throw new AppError("State OAuth không hợp lệ hoặc đã hết hạn", 400);
         }
 
+        const mode = pending.linkUserId ? ("link" as const) : ("login" as const);
         const tokens = await this.exchangeCode(code, pending.codeVerifier);
         const identity = await this.resolveGoogleIdentity(tokens);
         if (!identity.email || !identity.emailVerified) {
             throw new AppError("Google account chưa verify email", 400);
         }
 
-        const user = await this.findOrLinkUser(identity);
-        return issueTokenPair(user);
+        const user = pending.linkUserId
+            ? await this.linkGoogleToUser(pending.linkUserId, identity)
+            : await this.findOrLinkUser(identity);
+
+        return { ...issueTokenPair(user), mode };
+    }
+
+    static async unlinkGoogle(userId: string) {
+        const identityRepo = AppDataSource.getRepository(AuthIdentity);
+        const userRepo = AppDataSource.getRepository(User);
+
+        const user = await userRepo.findOneBy({ id: userId });
+        if (!user) throw new AppError("Không tìm thấy người dùng", 404);
+
+        const identity = await identityRepo.findOneBy({
+            userId,
+            provider: "google",
+        });
+        if (!identity) throw new AppError("Chưa liên kết Google", 404);
+
+        if (!user.passwordHash) {
+            throw new AppError("Hãy đặt mật khẩu trước khi hủy liên kết Google", 400);
+        }
+
+        await identityRepo.remove(identity);
     }
 
     private static async exchangeCode(
@@ -226,6 +251,47 @@ export class GoogleAuthService {
             avatarUrl: data.picture?.trim() || null,
             locale: data.locale?.trim() || null,
         };
+    }
+
+    private static async linkGoogleToUser(
+        userId: string,
+        identity: GoogleIdentity,
+    ): Promise<User> {
+        const identityRepo = AppDataSource.getRepository(AuthIdentity);
+        const userRepo = AppDataSource.getRepository(User);
+
+        const user = await userRepo.findOneBy({ id: userId });
+        if (!user) throw new AppError("Không tìm thấy người dùng", 404);
+
+        const alreadyMine = await identityRepo.findOneBy({
+            userId,
+            provider: "google",
+        });
+        if (alreadyMine) {
+            if (alreadyMine.providerSubject === identity.sub) {
+                applyGoogleProfile(alreadyMine, identity);
+                await identityRepo.save(alreadyMine);
+                return user;
+            }
+            throw new AppError("Tài khoản đã liên kết Google khác", 409);
+        }
+
+        const usedByOther = await identityRepo.findOneBy({
+            provider: "google",
+            providerSubject: identity.sub,
+        });
+        if (usedByOther) {
+            throw new AppError("Google này đã gắn với tài khoản khác", 409);
+        }
+
+        const created = identityRepo.create({
+            userId: user.id,
+            provider: "google",
+            providerSubject: identity.sub,
+        });
+        applyGoogleProfile(created, identity);
+        await identityRepo.save(created);
+        return user;
     }
 
     private static async findOrLinkUser(identity: GoogleIdentity): Promise<User> {

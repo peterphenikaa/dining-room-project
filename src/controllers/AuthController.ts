@@ -69,6 +69,21 @@ export const startGoogleLogin = async (_req: AuthRequest, res: Response) => {
     return res.redirect(302, url);
 };
 
+export const startGoogleLink = async (req: AuthRequest, res: Response) => {
+    if (!req.user) throw new AppError("Chưa xác thực", 401);
+    const url = await GoogleAuthService.buildAuthorizationUrl({
+        linkUserId: req.user.id,
+    });
+    return res.redirect(302, url);
+};
+
+export const unlinkGoogle = async (req: AuthRequest, res: Response) => {
+    if (!req.user) throw new AppError("Chưa xác thực", 401);
+    await GoogleAuthService.unlinkGoogle(req.user.id);
+    const profile = await UserService.getProfile(req.user.id);
+    return SuccessResponse(res, 200, "Đã hủy liên kết Google", profile);
+};
+
 export const googleCallback = async (req: AuthRequest, res: Response) => {
     const error = typeof req.query.error === "string" ? req.query.error : null;
     if (error) {
@@ -86,10 +101,18 @@ export const googleCallback = async (req: AuthRequest, res: Response) => {
     try {
         const result = await GoogleAuthService.handleCallback(code, state);
         setAuthCookies(res, result.accessToken, result.refreshToken);
-        return res.redirect(302, googleConfig.successRedirect);
+        const redirect =
+            result.mode === "link"
+                ? googleConfig.linkSuccessRedirect
+                : googleConfig.successRedirect;
+        return res.redirect(302, redirect);
     } catch (err) {
         const message = err instanceof Error ? err.message : "Google login thất bại";
-        const url = new URL(googleConfig.failureRedirect);
+        const isLinkHint = message.includes("liên kết") || message.includes("Google này");
+        const base = isLinkHint
+            ? googleConfig.linkFailureRedirect
+            : googleConfig.failureRedirect;
+        const url = new URL(base);
         url.searchParams.set("error", message);
         return res.redirect(302, url.toString());
     }

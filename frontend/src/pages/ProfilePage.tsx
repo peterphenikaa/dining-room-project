@@ -1,27 +1,42 @@
 import { type FormEvent, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { getGoogleLinkUrl, unlinkGoogle } from "../api/auth";
 import * as usersApi from "../api/users";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { GoogleIcon } from "../components/GoogleIcon";
 import { useAuth } from "../context/AuthContext";
 import type { UserProfile } from "../types/api";
 import { getApiErrorMessage } from "../utils/apiError";
 
 export function ProfilePage() {
     const { refreshUser } = useAuth();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [email, setEmail] = useState("");
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [unlinking, setUnlinking] = useState(false);
+    const [confirmUnlink, setConfirmUnlink] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [ok, setOk] = useState<string | null>(null);
 
+    async function loadProfile() {
+        const p = await usersApi.fetchMyProfile();
+        setProfile(p);
+        setEmail(p.email);
+        return p;
+    }
+
     useEffect(() => {
-        usersApi
-            .fetchMyProfile()
-            .then((p) => {
-                setProfile(p);
-                setEmail(p.email);
-            })
+        const oauthError = searchParams.get("error");
+        if (oauthError) {
+            setError(oauthError);
+            setSearchParams({}, { replace: true });
+        }
+
+        loadProfile()
             .catch((e) => setError(getApiErrorMessage(e, "Không tải được hồ sơ")))
             .finally(() => setLoading(false));
     }, []);
@@ -60,6 +75,23 @@ export function ProfilePage() {
         }
     }
 
+    async function handleUnlink() {
+        setUnlinking(true);
+        setError(null);
+        setOk(null);
+        try {
+            const updated = await unlinkGoogle();
+            setProfile(updated);
+            setConfirmUnlink(false);
+            setOk("Đã hủy liên kết Google");
+        } catch (err) {
+            setError(getApiErrorMessage(err, "Không hủy liên kết được"));
+            setConfirmUnlink(false);
+        } finally {
+            setUnlinking(false);
+        }
+    }
+
     if (loading) return <p className="muted">Đang tải hồ sơ...</p>;
     if (!profile) return <p className="error">{error || "Không có dữ liệu"}</p>;
 
@@ -73,6 +105,9 @@ export function ProfilePage() {
                     <p className="muted">Xem và cập nhật thông tin tài khoản</p>
                 </div>
             </header>
+
+            {error && <p className="error">{error}</p>}
+            {ok && <p className="ok">{ok}</p>}
 
             <div className="crud-grid">
                 <section className="panel-box">
@@ -95,15 +130,13 @@ export function ProfilePage() {
                     </dl>
 
                     <h2>Đăng nhập liên kết</h2>
-                    {profile.identities.length === 0 ? (
-                        <p className="muted">Chưa liên kết Google</p>
-                    ) : (
-                        <ul className="identity-list">
-                            {profile.identities.map((i) => (
-                                <li key={i.id} className="identity-item">
-                                    {i.avatarUrl ? (
+                    {google ? (
+                        <>
+                            <ul className="identity-list">
+                                <li className="identity-item">
+                                    {google.avatarUrl ? (
                                         <img
-                                            src={i.avatarUrl}
+                                            src={google.avatarUrl}
                                             alt=""
                                             className="identity-avatar"
                                             referrerPolicy="no-referrer"
@@ -112,25 +145,50 @@ export function ProfilePage() {
                                         <span className="identity-avatar placeholder">G</span>
                                     )}
                                     <div className="identity-meta">
-                                        <strong>{i.displayName || i.email || i.provider}</strong>
-                                        <span className="muted">{i.provider}</span>
-                                        {i.email && <span className="muted">{i.email}</span>}
-                                        {(i.givenName || i.familyName) && (
+                                        <strong>
+                                            {google.displayName || google.email || "Google"}
+                                        </strong>
+                                        <span className="muted">google</span>
+                                        {google.email && (
+                                            <span className="muted">{google.email}</span>
+                                        )}
+                                        {(google.givenName || google.familyName) && (
                                             <span className="muted">
-                                                {[i.givenName, i.familyName].filter(Boolean).join(" ")}
+                                                {[google.givenName, google.familyName]
+                                                    .filter(Boolean)
+                                                    .join(" ")}
                                             </span>
                                         )}
-                                        {i.locale && <span className="muted">Locale: {i.locale}</span>}
-                                        <span className="muted">
-                                            {new Date(i.createdAt).toLocaleString("vi-VN")}
-                                        </span>
+                                        {google.locale && (
+                                            <span className="muted">Locale: {google.locale}</span>
+                                        )}
                                     </div>
                                 </li>
-                            ))}
-                        </ul>
-                    )}
-                    {google && !google.displayName && !google.avatarUrl && (
-                        <p className="hint">Đăng xuất rồi đăng nhập Google lại để đồng bộ tên/ảnh.</p>
+                            </ul>
+                            <div className="actions" style={{ marginTop: 12 }}>
+                                <button
+                                    type="button"
+                                    className="danger"
+                                    onClick={() => setConfirmUnlink(true)}
+                                    disabled={!profile.hasPassword}
+                                >
+                                    Hủy liên kết Google
+                                </button>
+                            </div>
+                            {!profile.hasPassword && (
+                                <p className="hint">
+                                    Đặt mật khẩu trước khi hủy liên kết Google.
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <p className="muted">Chưa liên kết Google</p>
+                            <a className="btn-google" href={getGoogleLinkUrl()} style={{ marginTop: 12 }}>
+                                <GoogleIcon />
+                                Liên kết Google
+                            </a>
+                        </>
                     )}
                 </section>
 
@@ -185,14 +243,22 @@ export function ProfilePage() {
                                 />
                             </label>
                         )}
-                        {error && <p className="error">{error}</p>}
-                        {ok && <p className="ok">{ok}</p>}
                         <button type="submit" disabled={saving}>
                             {saving ? "Đang lưu..." : "Lưu thay đổi"}
                         </button>
                     </form>
                 </section>
             </div>
+
+            <ConfirmDialog
+                open={confirmUnlink}
+                title="Hủy liên kết Google"
+                message="Sau khi hủy, bạn đăng nhập bằng email/mật khẩu. Tiếp tục?"
+                confirmLabel="Hủy liên kết"
+                busy={unlinking}
+                onCancel={() => setConfirmUnlink(false)}
+                onConfirm={() => void handleUnlink()}
+            />
         </div>
     );
 }

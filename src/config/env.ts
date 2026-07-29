@@ -59,6 +59,10 @@ export const googleConfig = {
     oauthScopes: process.env.GOOGLE_OAUTH_SCOPES || "openid email profile",
     successRedirect: process.env.GOOGLE_SUCCESS_REDIRECT || "http://localhost:5173/",
     failureRedirect: process.env.GOOGLE_FAILURE_REDIRECT || "http://localhost:5173/login",
+    linkSuccessRedirect:
+        process.env.GOOGLE_LINK_SUCCESS_REDIRECT || "http://localhost:5173/profile",
+    linkFailureRedirect:
+        process.env.GOOGLE_LINK_FAILURE_REDIRECT || "http://localhost:5173/profile",
 };
 
 export function assertGoogleOAuthConfigured(): void {

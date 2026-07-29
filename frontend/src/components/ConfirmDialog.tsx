@@ -37,7 +37,7 @@ export function ConfirmDialog({
                         {cancelLabel}
                     </button>
                     <button type="button" className="danger" onClick={onConfirm} disabled={busy}>
-                        {busy ? "Đang xóa..." : confirmLabel}
+                        {busy ? "Đang xử lý..." : confirmLabel}
                     </button>
                 </div>
             </div>

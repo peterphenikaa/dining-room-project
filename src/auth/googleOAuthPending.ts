@@ -4,10 +4,12 @@ import { redisConfig } from "../config/env";
 export type GoogleOAuthPending = {
     codeVerifier: string;
     createdAt: number;
+    /** Có mặt = đang liên kết Google vào user đã login */
+    linkUserId?: string;
 };
 
 const KEY_PREFIX = "oauth:google:";
-const TTL_SECONDS = 10 * 60; 
+const TTL_SECONDS = 10 * 60;
 
 let redis: Redis | null = null;
 

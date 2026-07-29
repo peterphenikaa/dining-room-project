@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { ApiSuccess, AuthUser } from "../types/api";
+import type { ApiSuccess, AuthUser, UserProfile } from "../types/api";
 import { resolveApiUrl } from "../utils/apiUrl";
 
 export async function login(email: string, password: string) {
@@ -35,4 +35,13 @@ export async function refresh() {
 
 export function getGoogleLoginUrl(): string {
     return `${resolveApiUrl()}/api/auth/google`;
+}
+
+export function getGoogleLinkUrl(): string {
+    return `${resolveApiUrl()}/api/auth/google/link`;
+}
+
+export async function unlinkGoogle() {
+    const { data } = await api.delete<ApiSuccess<UserProfile>>("/api/auth/profile/google");
+    return data.data;
 }
