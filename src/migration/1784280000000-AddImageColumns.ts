@@ -1,9 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-/**
- * Thêm cột ảnh (MinIO/S3) cho 5 bảng dining.
- * imageUrl/imageKey = bản gốc; imageThumb* = sau khi BullMQ worker nén.
- */
 export class AddImageColumns1784280000000 implements MigrationInterface {
     name = "AddImageColumns1784280000000";
 

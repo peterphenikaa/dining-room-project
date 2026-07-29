@@ -2,6 +2,9 @@ import { type FormEvent, useEffect, useState } from "react";
 import * as roomsApi from "../api/rooms";
 import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { PAGE_LIMIT } from "../api/listParams";
+import { OptionSelect } from "../components/OptionSelect";
+import { RowActions } from "../components/RowActions";
+import { STYLE_OPTIONS } from "../constants/formOptions";
 import type { DiningRoom } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
@@ -213,22 +216,10 @@ export function RoomsPage() {
                                         <td>{room.area_size}</td>
                                         <td>{room.style || "—"}</td>
                                         {canWrite && (
-                                            <td className="row-actions">
-                                                <button
-                                                    type="button"
-                                                    className="secondary"
-                                                    onClick={() => startEdit(room)}
-                                                >
-                                                    Sửa
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="danger"
-                                                    onClick={() => setPendingDeleteId(room.id)}
-                                                >
-                                                    Xóa
-                                                </button>
-                                            </td>
+                                            <RowActions
+                                                onEdit={() => startEdit(room)}
+                                                onDelete={() => setPendingDeleteId(room.id)}
+                                            />
                                         )}
                                     </tr>
                                 ))}
@@ -273,13 +264,12 @@ export function RoomsPage() {
                                     required
                                 />
                             </label>
-                            <label>
-                                Style
-                                <input
-                                    value={form.style}
-                                    onChange={(e) => setForm({ ...form, style: e.target.value })}
-                                />
-                            </label>
+                            <OptionSelect
+                                label="Style"
+                                value={form.style}
+                                onChange={(style) => setForm({ ...form, style })}
+                                options={STYLE_OPTIONS}
+                            />
                             <EntityImageField
                                 resetKey={imageResetKey}
                                 previewUrl={editingImage.thumb || editingImage.url}

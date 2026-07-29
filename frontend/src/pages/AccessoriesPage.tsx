@@ -3,6 +3,12 @@ import * as accessoriesApi from "../api/accessories";
 import * as tablesApi from "../api/tables";
 import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
+import { OptionSelect } from "../components/OptionSelect";
+import { RowActions } from "../components/RowActions";
+import {
+    ACCESSORY_TYPE_OPTIONS,
+    QUANTITY_OPTIONS,
+} from "../constants/formOptions";
 import type { DiningAccessory, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
@@ -226,22 +232,10 @@ export function AccessoriesPage() {
                                         <td>{row.quantity}</td>
                                         <td>{row.diningTable?.name || "—"}</td>
                                         {canWrite && (
-                                            <td className="row-actions">
-                                                <button
-                                                    type="button"
-                                                    className="secondary"
-                                                    onClick={() => startEdit(row)}
-                                                >
-                                                    Sửa
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="danger"
-                                                    onClick={() => setPendingDeleteId(row.id)}
-                                                >
-                                                    Xóa
-                                                </button>
-                                            </td>
+                                            <RowActions
+                                                onEdit={() => startEdit(row)}
+                                                onDelete={() => setPendingDeleteId(row.id)}
+                                            />
                                         )}
                                     </tr>
                                 ))}
@@ -275,25 +269,21 @@ export function AccessoriesPage() {
                                     required
                                 />
                             </label>
-                            <label>
-                                Loại
-                                <input
-                                    value={form.type}
-                                    onChange={(e) => setForm({ ...form, type: e.target.value })}
-                                    required
-                                />
-                            </label>
-                            <label>
-                                Số lượng
-                                <input
-                                    type="number"
-                                    min={1}
-                                    step={1}
-                                    value={form.quantity}
-                                    onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-                                    required
-                                />
-                            </label>
+                            <OptionSelect
+                                label="Loại"
+                                value={form.type}
+                                onChange={(type) => setForm({ ...form, type })}
+                                options={ACCESSORY_TYPE_OPTIONS}
+                                required
+                            />
+                            <OptionSelect
+                                label="Số lượng"
+                                value={form.quantity}
+                                onChange={(quantity) => setForm({ ...form, quantity })}
+                                options={QUANTITY_OPTIONS}
+                                required
+                                allowEmpty={false}
+                            />
                             <label>
                                 Bàn ăn
                                 <select

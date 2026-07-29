@@ -15,7 +15,6 @@ export class DiningCabinet {
     @Column({ nullable: true })
     dimensions: string
 
-    /** Số lượng tủ cùng loại trong phòng */
     @Column({ type: "int", default: 1 })
     quantity: number
 

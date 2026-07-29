@@ -1,7 +1,3 @@
-/**
- * Capture UI screenshots for short progress report.
- * Requires FE :5173 + API :3002
- */
 const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
@@ -33,11 +29,9 @@ async function main() {
   });
   const page = await context.newPage();
 
-  // 1. Login page
   await page.goto(`${BASE}/login`, { waitUntil: "networkidle" });
   await shot(page, "01-login");
 
-  // 2. Admin dashboard + rooms CRUD
   await login(page, "admin@demo.com", "demo");
   await page.waitForTimeout(500);
   await shot(page, "02-admin-dashboard");
@@ -50,11 +44,9 @@ async function main() {
   await page.waitForTimeout(800);
   await shot(page, "04-admin-tables");
 
-  // logout via button
   await page.getByRole("button", { name: "Đăng xuất" }).click();
   await page.waitForURL("**/login", { timeout: 10000 });
 
-  // 3. User view-only
   await login(page, "user@demo.com", "demo");
   await page.waitForTimeout(500);
   await page.click('a[href="/rooms"]');

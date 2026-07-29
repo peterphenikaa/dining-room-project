@@ -6,6 +6,15 @@ type Props = {
 
 export function EntityThumb({ thumbUrl, url, alt }: Props) {
     const src = thumbUrl || url;
-    if (!src) return <span className="muted">—</span>;
-    return <img src={src} alt={alt} className="row-thumb" />;
+    return (
+        <span className="cell-thumb">
+            {src ? (
+                <img src={src} alt={alt} className="row-thumb" />
+            ) : (
+                <span className="cell-thumb-empty" aria-hidden>
+                    —
+                </span>
+            )}
+        </span>
+    );
 }

@@ -1,9 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-/**
- * Thêm cột quantity (số lượng) cho bàn / tủ / ghế / phụ kiện.
- * DiningRoom không thêm — mỗi phòng là 1 thực thể riêng.
- */
 export class AddQuantityColumns1784261000000 implements MigrationInterface {
     name = "AddQuantityColumns1784261000000";
 

@@ -10,8 +10,8 @@ export class User {
     @Column({ unique: true })
     email: string
 
-    @Column()
-    passwordHash: string
+    @Column({ type: "varchar", length: 255, nullable: true })
+    passwordHash: string | null
 
     @Column({ type: "varchar", length: 20, default: "user" })
     role: UserRole

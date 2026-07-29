@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 type Props = {
-    /** Tăng khi Form tạo mới / đổi bản ghi để clear preview + input file */
     resetKey?: number | string;
     previewUrl?: string | null;
     disabled?: boolean;

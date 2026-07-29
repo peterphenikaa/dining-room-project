@@ -1,4 +1,3 @@
-/** CORS_ORIGIN: danh sách origin cách nhau bởi dấu phẩy (đọc từ env). */
 export function parseCorsOrigins(raw?: string): string | string[] {
     const list = (raw || "")
         .split(",")

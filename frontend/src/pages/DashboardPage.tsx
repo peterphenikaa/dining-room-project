@@ -7,10 +7,15 @@ const LINKS = [
     { to: "/cabinets", title: "Tủ", desc: "Quản lý tủ" },
     { to: "/chairs", title: "Ghế", desc: "Quản lý ghế" },
     { to: "/accessories", title: "Phụ kiện", desc: "Quản lý phụ kiện" },
+    { to: "/profile", title: "Hồ sơ", desc: "Thông tin tài khoản" },
 ];
 
 export function DashboardPage() {
     const { user } = useAuth();
+    const links =
+        user?.role === "admin"
+            ? [...LINKS, { to: "/users", title: "Người dùng", desc: "Quản lý tài khoản" }]
+            : LINKS;
 
     return (
         <div className="page">
@@ -25,7 +30,7 @@ export function DashboardPage() {
             </header>
 
             <div className="link-grid">
-                {LINKS.map((item) => (
+                {links.map((item) => (
                     <Link key={item.to} to={item.to} className="link-card">
                         <strong>{item.title}</strong>
                         <span className="muted">{item.desc}</span>

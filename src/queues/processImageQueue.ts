@@ -23,7 +23,6 @@ export function getProcessImageQueue() {
 }
 
 export async function enqueueProcessImage(data: ProcessImageJob) {
-    // BullMQ cấm ":" trong custom jobId
     return getProcessImageQueue().add("resize", data, {
         jobId: `img-${data.entityType}-${data.entityId}-${Date.now()}`,
     });

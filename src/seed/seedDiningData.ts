@@ -1,13 +1,3 @@
-/**
- * Seed dữ liệu dining demo (có quantity).
- * Giữ file — chạy lại được (idempotent theo name).
- *
- * Docker:
- *   docker exec express_app npx ts-node src/seed/seedDiningData.ts
- *
- * Local (DB_HOST=localhost):
- *   npx ts-node src/seed/seedDiningData.ts
- */
 import "dotenv/config";
 import "reflect-metadata";
 import { AppDataSource } from "../data-source";

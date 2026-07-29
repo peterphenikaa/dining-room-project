@@ -1,6 +1,10 @@
 import { Response } from "express";
+import { googleConfig } from "../config/env";
 import { AuthService } from "../services/AuthService";
+import { GoogleAuthService } from "../services/GoogleAuthService";
+import { UserService } from "../services/UserService";
 import { loginSchema, registerSchema } from "../schemas/authSchemas";
+import { updateMyProfileSchema } from "../schemas/userSchemas";
 import { AuthRequest } from "../types/auth";
 import { AppError } from "../utils/AppError";
 import { clearAuthCookies, REFRESH_COOKIE, setAuthCookies } from "../utils/authCookie";
@@ -42,7 +46,51 @@ export const me = async (req: AuthRequest, res: Response) => {
     return SuccessResponse(res, 200, "Lấy thông tin người dùng thành công", user);
 };
 
+export const getMyProfile = async (req: AuthRequest, res: Response) => {
+    if (!req.user) throw new AppError("Chưa xác thực", 401);
+    const profile = await UserService.getProfile(req.user.id);
+    return SuccessResponse(res, 200, "Lấy hồ sơ thành công", profile);
+};
+
+export const updateMyProfile = async (req: AuthRequest, res: Response) => {
+    if (!req.user) throw new AppError("Chưa xác thực", 401);
+    const input = updateMyProfileSchema.parse(req.body);
+    const profile = await UserService.updateMyProfile(req.user.id, input);
+    return SuccessResponse(res, 200, "Cập nhật hồ sơ thành công", profile);
+};
+
 export const logout = async (_req: AuthRequest, res: Response) => {
     clearAuthCookies(res);
     return SuccessResponse(res, 200, "Đăng xuất thành công!", null);
+};
+
+export const startGoogleLogin = async (_req: AuthRequest, res: Response) => {
+    const url = await GoogleAuthService.buildAuthorizationUrl();
+    return res.redirect(302, url);
+};
+
+export const googleCallback = async (req: AuthRequest, res: Response) => {
+    const error = typeof req.query.error === "string" ? req.query.error : null;
+    if (error) {
+        const url = new URL(googleConfig.failureRedirect);
+        url.searchParams.set("error", error);
+        return res.redirect(302, url.toString());
+    }
+
+    const code = typeof req.query.code === "string" ? req.query.code : "";
+    const state = typeof req.query.state === "string" ? req.query.state : "";
+    if (!code || !state) {
+        throw new AppError("Thiếu code hoặc state từ Google", 400);
+    }
+
+    try {
+        const result = await GoogleAuthService.handleCallback(code, state);
+        setAuthCookies(res, result.accessToken, result.refreshToken);
+        return res.redirect(302, googleConfig.successRedirect);
+    } catch (err) {
+        const message = err instanceof Error ? err.message : "Google login thất bại";
+        const url = new URL(googleConfig.failureRedirect);
+        url.searchParams.set("error", message);
+        return res.redirect(302, url.toString());
+    }
 };

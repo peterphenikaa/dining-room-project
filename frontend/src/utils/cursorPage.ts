@@ -1,7 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import type { CursorPage } from "../types/api";
 
-/** Áp 1 trang cursor: thay items (không nối), nhớ cursor trang kế. */
 export function applyCursorPage<T>(
     page: CursorPage<T>,
     index: number,

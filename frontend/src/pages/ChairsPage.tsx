@@ -3,6 +3,13 @@ import * as chairsApi from "../api/chairs";
 import * as tablesApi from "../api/tables";
 import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
+import { OptionSelect } from "../components/OptionSelect";
+import { RowActions } from "../components/RowActions";
+import {
+    COLOR_OPTIONS,
+    MATERIAL_OPTIONS,
+    QUANTITY_OPTIONS,
+} from "../constants/formOptions";
 import type { DiningChair, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
@@ -231,22 +238,10 @@ export function ChairsPage() {
                                         <td>{row.quantity}</td>
                                         <td>{row.diningTable?.name || "—"}</td>
                                         {canWrite && (
-                                            <td className="row-actions">
-                                                <button
-                                                    type="button"
-                                                    className="secondary"
-                                                    onClick={() => startEdit(row)}
-                                                >
-                                                    Sửa
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="danger"
-                                                    onClick={() => setPendingDeleteId(row.id)}
-                                                >
-                                                    Xóa
-                                                </button>
-                                            </td>
+                                            <RowActions
+                                                onEdit={() => startEdit(row)}
+                                                onDelete={() => setPendingDeleteId(row.id)}
+                                            />
                                         )}
                                     </tr>
                                 ))}
@@ -280,32 +275,27 @@ export function ChairsPage() {
                                     required
                                 />
                             </label>
-                            <label>
-                                Chất liệu
-                                <input
-                                    value={form.material}
-                                    onChange={(e) => setForm({ ...form, material: e.target.value })}
-                                    required
-                                />
-                            </label>
-                            <label>
-                                Màu
-                                <input
-                                    value={form.color}
-                                    onChange={(e) => setForm({ ...form, color: e.target.value })}
-                                />
-                            </label>
-                            <label>
-                                Số lượng
-                                <input
-                                    type="number"
-                                    min={1}
-                                    step={1}
-                                    value={form.quantity}
-                                    onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-                                    required
-                                />
-                            </label>
+                            <OptionSelect
+                                label="Chất liệu"
+                                value={form.material}
+                                onChange={(material) => setForm({ ...form, material })}
+                                options={MATERIAL_OPTIONS}
+                                required
+                            />
+                            <OptionSelect
+                                label="Màu"
+                                value={form.color}
+                                onChange={(color) => setForm({ ...form, color })}
+                                options={COLOR_OPTIONS}
+                            />
+                            <OptionSelect
+                                label="Số lượng"
+                                value={form.quantity}
+                                onChange={(quantity) => setForm({ ...form, quantity })}
+                                options={QUANTITY_OPTIONS}
+                                required
+                                allowEmpty={false}
+                            />
                             <label>
                                 Bàn ăn
                                 <select

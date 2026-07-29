@@ -1,6 +1,5 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-/** password cho cả 2 account: demo */
 const DEMO_PASSWORD_HASH = "$2b$10$puMrc5m5YOOn.vrmbsOx5.wER4bnp4CfJfJxAFuH6Z8TBv6t1AvjW";
 
 export class CreateUsersTable1784260500000 implements MigrationInterface {

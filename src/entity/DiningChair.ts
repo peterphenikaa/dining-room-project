@@ -15,7 +15,6 @@ export class DiningChair {
     @Column({ nullable: true })
     color: string
 
-    /** Số lượng ghế cùng loại gắn với bàn */
     @Column({ type: "int", default: 1 })
     quantity: number
 

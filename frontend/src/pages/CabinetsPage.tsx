@@ -3,6 +3,13 @@ import * as cabinetsApi from "../api/cabinets";
 import * as roomsApi from "../api/rooms";
 import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
+import { OptionSelect } from "../components/OptionSelect";
+import { RowActions } from "../components/RowActions";
+import {
+    MATERIAL_OPTIONS,
+    QUANTITY_OPTIONS,
+    SIZE_OPTIONS,
+} from "../constants/formOptions";
 import type { DiningCabinet, DiningRoom } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
@@ -229,22 +236,10 @@ export function CabinetsPage() {
                                         <td>{row.quantity}</td>
                                         <td>{row.diningRoom?.name || "—"}</td>
                                         {canWrite && (
-                                            <td className="row-actions">
-                                                <button
-                                                    type="button"
-                                                    className="secondary"
-                                                    onClick={() => startEdit(row)}
-                                                >
-                                                    Sửa
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="danger"
-                                                    onClick={() => setPendingDeleteId(row.id)}
-                                                >
-                                                    Xóa
-                                                </button>
-                                            </td>
+                                            <RowActions
+                                                onEdit={() => startEdit(row)}
+                                                onDelete={() => setPendingDeleteId(row.id)}
+                                            />
                                         )}
                                     </tr>
                                 ))}
@@ -278,32 +273,27 @@ export function CabinetsPage() {
                                     required
                                 />
                             </label>
-                            <label>
-                                Chất liệu
-                                <input
-                                    value={form.material}
-                                    onChange={(e) => setForm({ ...form, material: e.target.value })}
-                                    required
-                                />
-                            </label>
-                            <label>
-                                Kích thước
-                                <input
-                                    value={form.dimensions}
-                                    onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
-                                />
-                            </label>
-                            <label>
-                                Số lượng
-                                <input
-                                    type="number"
-                                    min={1}
-                                    step={1}
-                                    value={form.quantity}
-                                    onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-                                    required
-                                />
-                            </label>
+                            <OptionSelect
+                                label="Chất liệu"
+                                value={form.material}
+                                onChange={(material) => setForm({ ...form, material })}
+                                options={MATERIAL_OPTIONS}
+                                required
+                            />
+                            <OptionSelect
+                                label="Kích thước"
+                                value={form.dimensions}
+                                onChange={(dimensions) => setForm({ ...form, dimensions })}
+                                options={SIZE_OPTIONS}
+                            />
+                            <OptionSelect
+                                label="Số lượng"
+                                value={form.quantity}
+                                onChange={(quantity) => setForm({ ...form, quantity })}
+                                options={QUANTITY_OPTIONS}
+                                required
+                                allowEmpty={false}
+                            />
                             <label>
                                 Phòng ăn
                                 <select

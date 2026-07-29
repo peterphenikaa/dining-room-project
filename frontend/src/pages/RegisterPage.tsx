@@ -1,5 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { getGoogleLoginUrl } from "../api/auth";
+import { GoogleIcon } from "../components/GoogleIcon";
 import { useAuth } from "../context/AuthContext";
 import { getApiErrorMessage } from "../utils/apiError";
 
@@ -71,6 +73,15 @@ export function RegisterPage() {
                     {submitting ? "Đang đăng ký..." : "Đăng ký"}
                 </button>
             </form>
+
+            <div className="auth-divider">
+                <span>hoặc</span>
+            </div>
+
+            <a className="btn-google" href={getGoogleLoginUrl()}>
+                <GoogleIcon />
+                Đăng ký / Đăng nhập với Google
+            </a>
 
             <p className="auth-switch">
                 Đã có tài khoản? <Link to="/login">Đăng nhập</Link>

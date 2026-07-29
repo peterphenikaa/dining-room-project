@@ -45,6 +45,9 @@ export class AuthService {
         if (!user) {
             throw new AppError("Email hoặc mật khẩu không đúng", 401);
         }
+        if (!user.passwordHash) {
+            throw new AppError("Tài khoản này đăng nhập bằng Google", 401);
+        }
 
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) {

@@ -6,6 +6,22 @@ export type AuthUser = {
     role: UserRole;
 };
 
+export type UserIdentity = {
+    id: string;
+    provider: string;
+    providerSubject: string;
+    email: string | null;
+    createdAt: string;
+};
+
+export type UserProfile = {
+    id: string;
+    email: string;
+    role: UserRole;
+    hasPassword: boolean;
+    identities: UserIdentity[];
+};
+
 export type ApiSuccess<T> = {
     status: "success";
     message: string;

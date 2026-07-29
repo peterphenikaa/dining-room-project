@@ -2,17 +2,20 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { RealtimeToast } from "./RealtimeToast";
 
-const NAV = [
-    { to: "/", label: "Tổng quan", end: true },
-    { to: "/rooms", label: "Phòng ăn" },
-    { to: "/tables", label: "Bàn ăn" },
-    { to: "/cabinets", label: "Tủ" },
-    { to: "/chairs", label: "Ghế" },
-    { to: "/accessories", label: "Phụ kiện" },
-];
-
 export function AppShell() {
     const { user, logout } = useAuth();
+    const isAdmin = user?.role === "admin";
+
+    const nav = [
+        { to: "/", label: "Tổng quan", end: true },
+        { to: "/rooms", label: "Phòng ăn" },
+        { to: "/tables", label: "Bàn ăn" },
+        { to: "/cabinets", label: "Tủ" },
+        { to: "/chairs", label: "Ghế" },
+        { to: "/accessories", label: "Phụ kiện" },
+        { to: "/profile", label: "Hồ sơ" },
+        ...(isAdmin ? [{ to: "/users", label: "Người dùng" }] : []),
+    ];
 
     return (
         <div className="shell">
@@ -22,7 +25,7 @@ export function AppShell() {
                     <span className="muted">Quản lý nội thất</span>
                 </div>
                 <nav className="nav">
-                    {NAV.map((item) => (
+                    {nav.map((item) => (
                         <NavLink
                             key={item.to}
                             to={item.to}

@@ -20,7 +20,6 @@ export class DiningTable {
     @Column({ nullable: true })
     dimensions: string
 
-    /** Số lượng bàn cùng loại trong phòng */
     @Column({ type: "int", default: 1 })
     quantity: number
 

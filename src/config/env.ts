@@ -52,6 +52,21 @@ export const minioConfig = {
     publicUrlOverride: process.env.MINIO_PUBLIC_URL?.replace(/\/$/, "") || "",
 };
 
+export const googleConfig = {
+    clientId: process.env.GOOGLE_CLIENT_ID || "",
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    redirectUri: process.env.GOOGLE_REDIRECT_URI || "",
+    oauthScopes: process.env.GOOGLE_OAUTH_SCOPES || "openid email profile",
+    successRedirect: process.env.GOOGLE_SUCCESS_REDIRECT || "http://localhost:5173/",
+    failureRedirect: process.env.GOOGLE_FAILURE_REDIRECT || "http://localhost:5173/login",
+};
+
+export function assertGoogleOAuthConfigured(): void {
+    if (!googleConfig.clientId) throw new Error("Thiếu GOOGLE_CLIENT_ID");
+    if (!googleConfig.clientSecret) throw new Error("Thiếu GOOGLE_CLIENT_SECRET");
+    if (!googleConfig.redirectUri) throw new Error("Thiếu GOOGLE_REDIRECT_URI");
+}
+
 export function minioInternalEndpoint(): string {
     const scheme = minioConfig.useSsl ? "https" : "http";
     return `${scheme}://${minioConfig.endpointHost}:${minioConfig.endpointPort}`;
@@ -66,4 +81,11 @@ export function minioPublicBaseUrl(): string {
     return omitPort
         ? `${scheme}://${minioConfig.publicHost}`
         : `${scheme}://${minioConfig.publicHost}:${port}`;
+}
+
+export function googleOauthScopes(): string[] {
+    return googleConfig.oauthScopes
+        .split(/\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
 }

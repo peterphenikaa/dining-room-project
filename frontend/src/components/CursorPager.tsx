@@ -7,7 +7,6 @@ type Props = {
     onNext: () => void;
 };
 
-/** Mũi tên Trước / Sau — mỗi lần đổi trang (không nối thêm rows). */
 export function CursorPager({ pageIndex, canPrev, canNext, busy, onPrev, onNext }: Props) {
     if (!canPrev && !canNext) return null;
 

@@ -1,5 +1,6 @@
 import { api } from "./client";
 import type { ApiSuccess, AuthUser } from "../types/api";
+import { resolveApiUrl } from "../utils/apiUrl";
 
 export async function login(email: string, password: string) {
     const { data } = await api.post<ApiSuccess<{ user: AuthUser }>>("/api/auth/login", {
@@ -30,4 +31,8 @@ export async function getMe() {
 export async function refresh() {
     const { data } = await api.post<ApiSuccess<{ user: AuthUser }>>("/api/auth/refresh");
     return data.data.user;
+}
+
+export function getGoogleLoginUrl(): string {
+    return `${resolveApiUrl()}/api/auth/google`;
 }

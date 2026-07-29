@@ -1,19 +1,13 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { resolveApiUrl } from "../utils/apiUrl";
 
-/**
- * Axios client dùng httpOnly cookie (B2/B2b).
- * withCredentials: true — browser tự gửi access_token + refresh_token.
- */
 export const api = axios.create({
     baseURL: resolveApiUrl(),
     withCredentials: true,
 });
 
-
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
-/** Chỉ 1 request refresh đồng thời; các request 401 khác chờ chung promise này */
 let refreshPromise: Promise<void> | null = null;
 
 function shouldSkipRefresh(url?: string): boolean {
@@ -38,10 +32,6 @@ async function refreshSession(): Promise<void> {
     await refreshPromise;
 }
 
-/**
- * Interceptor B4: 401 → gọi /api/auth/refresh 1 lần → retry request gốc.
- * Không retry vô hạn (_retry flag) và không refresh trên chính endpoint auth.
- */
 api.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {

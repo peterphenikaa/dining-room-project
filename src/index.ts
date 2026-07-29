@@ -8,6 +8,7 @@ import { appConfig } from "./config/env";
 import { AppDataSource } from "./data-source";
 
 import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
 import diningRoomRoutes from "./routes/diningRoomRoutes";
 import diningTableRoutes from "./routes/diningTableRoutes";
 import diningChairRoutes from "./routes/diningChairRoutes";
@@ -48,6 +49,7 @@ AppDataSource.initialize()
         });
 
         app.use("/api/auth", authRoutes);
+        app.use("/api/users", userRoutes);
         app.use("/api/rooms", diningRoomRoutes);
         app.use("/api/tables", diningTableRoutes);
         app.use("/api/chairs", diningChairRoutes);

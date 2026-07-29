@@ -26,7 +26,6 @@ export function getBucket() {
     return bucket;
 }
 
-/** Public URL (bucket policy PublicRead) — không phải presigned. */
 export function publicUrlForKey(key: string) {
     return `${minioPublicBaseUrl()}/${bucket}/${key}`;
 }

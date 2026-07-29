@@ -11,6 +11,8 @@ import { TablesPage } from "./pages/TablesPage";
 import { CabinetsPage } from "./pages/CabinetsPage";
 import { ChairsPage } from "./pages/ChairsPage";
 import { AccessoriesPage } from "./pages/AccessoriesPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { UsersPage } from "./pages/UsersPage";
 import "./App.css";
 
 export default function App() {
@@ -43,6 +45,8 @@ export default function App() {
                                 <Route path="/cabinets" element={<CabinetsPage />} />
                                 <Route path="/chairs" element={<ChairsPage />} />
                                 <Route path="/accessories" element={<AccessoriesPage />} />
+                                <Route path="/profile" element={<ProfilePage />} />
+                                <Route path="/users" element={<UsersPage />} />
                             </Route>
                         </Route>
                         <Route path="*" element={<Navigate to="/" replace />} />

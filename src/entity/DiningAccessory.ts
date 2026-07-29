@@ -12,7 +12,6 @@ export class DiningAccessory {
     @Column()
     type: string
 
-    /** Số lượng phụ kiện cùng loại gắn với bàn */
     @Column({ type: "int", default: 1 })
     quantity: number
 
