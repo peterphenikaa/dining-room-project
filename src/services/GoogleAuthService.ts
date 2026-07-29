@@ -14,11 +14,17 @@ import { signAccessToken, signRefreshToken } from "../utils/jwt";
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo";
+const GOOGLE_USERINFO_URL = "https://openidconnect.googleapis.com/v1/userinfo";
 
 export type GoogleIdentity = {
     sub: string;
     email: string;
     emailVerified: boolean;
+    displayName: string | null;
+    givenName: string | null;
+    familyName: string | null;
+    avatarUrl: string | null;
+    locale: string | null;
 };
 
 type GoogleTokenResponse = {
@@ -45,6 +51,15 @@ function issueTokenPair(user: User) {
         refreshToken: signRefreshToken(publicUser),
         user: publicUser,
     };
+}
+
+function applyGoogleProfile(target: AuthIdentity, identity: GoogleIdentity) {
+    target.email = identity.email;
+    target.displayName = identity.displayName;
+    target.givenName = identity.givenName;
+    target.familyName = identity.familyName;
+    target.avatarUrl = identity.avatarUrl;
+    target.locale = identity.locale;
 }
 
 export class GoogleAuthService {
@@ -82,7 +97,7 @@ export class GoogleAuthService {
         }
 
         const tokens = await this.exchangeCode(code, pending.codeVerifier);
-        const identity = await this.verifyIdToken(tokens.id_token);
+        const identity = await this.resolveGoogleIdentity(tokens);
         if (!identity.email || !identity.emailVerified) {
             throw new AppError("Google account chưa verify email", 400);
         }
@@ -119,6 +134,25 @@ export class GoogleAuthService {
         return (await res.json()) as GoogleTokenResponse;
     }
 
+    private static async resolveGoogleIdentity(
+        tokens: GoogleTokenResponse,
+    ): Promise<GoogleIdentity> {
+        const fromIdToken = await this.verifyIdToken(tokens.id_token);
+        const fromUserInfo = await this.fetchUserInfo(tokens.access_token);
+
+        return {
+            sub: fromUserInfo.sub || fromIdToken.sub,
+            email: (fromUserInfo.email || fromIdToken.email).toLowerCase(),
+            emailVerified:
+                fromUserInfo.emailVerified ?? fromIdToken.emailVerified,
+            displayName: fromUserInfo.displayName || fromIdToken.displayName,
+            givenName: fromUserInfo.givenName || fromIdToken.givenName,
+            familyName: fromUserInfo.familyName || fromIdToken.familyName,
+            avatarUrl: fromUserInfo.avatarUrl || fromIdToken.avatarUrl,
+            locale: fromUserInfo.locale || fromIdToken.locale,
+        };
+    }
+
     private static async verifyIdToken(idToken: string): Promise<GoogleIdentity> {
         const url = `${GOOGLE_TOKENINFO_URL}?id_token=${encodeURIComponent(idToken)}`;
         const res = await fetch(url);
@@ -131,7 +165,11 @@ export class GoogleAuthService {
             email?: string;
             email_verified?: string | boolean;
             aud?: string;
-            iss?: string;
+            name?: string;
+            given_name?: string;
+            family_name?: string;
+            picture?: string;
+            locale?: string;
         };
 
         if (data.aud !== googleConfig.clientId) {
@@ -141,13 +179,52 @@ export class GoogleAuthService {
             throw new AppError("ID token thiếu sub", 401);
         }
 
-        const emailVerified =
-            data.email_verified === true || data.email_verified === "true";
+        return {
+            sub: data.sub,
+            email: (data.email || "").toLowerCase(),
+            emailVerified: data.email_verified === true || data.email_verified === "true",
+            displayName: data.name?.trim() || null,
+            givenName: data.given_name?.trim() || null,
+            familyName: data.family_name?.trim() || null,
+            avatarUrl: data.picture?.trim() || null,
+            locale: data.locale?.trim() || null,
+        };
+    }
+
+    private static async fetchUserInfo(accessToken: string): Promise<GoogleIdentity> {
+        const res = await fetch(GOOGLE_USERINFO_URL, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!res.ok) {
+            const text = await res.text();
+            console.error("Google userinfo failed:", text);
+            throw new AppError("Không lấy được hồ sơ Google", 400);
+        }
+
+        const data = (await res.json()) as {
+            sub?: string;
+            email?: string;
+            email_verified?: boolean;
+            name?: string;
+            given_name?: string;
+            family_name?: string;
+            picture?: string;
+            locale?: string;
+        };
+
+        if (!data.sub) {
+            throw new AppError("Userinfo Google thiếu sub", 400);
+        }
 
         return {
             sub: data.sub,
             email: (data.email || "").toLowerCase(),
-            emailVerified,
+            emailVerified: data.email_verified === true,
+            displayName: data.name?.trim() || null,
+            givenName: data.given_name?.trim() || null,
+            familyName: data.family_name?.trim() || null,
+            avatarUrl: data.picture?.trim() || null,
+            locale: data.locale?.trim() || null,
         };
     }
 
@@ -160,6 +237,8 @@ export class GoogleAuthService {
             relations: ["user"],
         });
         if (existingIdentity?.user) {
+            applyGoogleProfile(existingIdentity, identity);
+            await identityRepo.save(existingIdentity);
             return existingIdentity.user;
         }
 
@@ -174,14 +253,13 @@ export class GoogleAuthService {
             );
         }
 
-        await identityRepo.save(
-            identityRepo.create({
-                userId: user.id,
-                provider: "google",
-                providerSubject: identity.sub,
-                email: identity.email,
-            }),
-        );
+        const created = identityRepo.create({
+            userId: user.id,
+            provider: "google",
+            providerSubject: identity.sub,
+        });
+        applyGoogleProfile(created, identity);
+        await identityRepo.save(created);
 
         return user;
     }

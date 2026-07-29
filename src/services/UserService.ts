@@ -17,6 +17,11 @@ export type UserProfile = {
         provider: string;
         providerSubject: string;
         email: string | null;
+        displayName: string | null;
+        givenName: string | null;
+        familyName: string | null;
+        avatarUrl: string | null;
+        locale: string | null;
         createdAt: Date;
     }>;
 };
@@ -32,6 +37,11 @@ function toProfile(user: User, identities: AuthIdentity[]): UserProfile {
             provider: i.provider,
             providerSubject: i.providerSubject,
             email: i.email,
+            displayName: i.displayName,
+            givenName: i.givenName,
+            familyName: i.familyName,
+            avatarUrl: i.avatarUrl,
+            locale: i.locale,
             createdAt: i.createdAt,
         })),
     };
@@ -74,14 +84,13 @@ export class UserService {
         }
 
         if (input.newPassword) {
-            if (!user.passwordHash) {
-                throw new AppError("Tài khoản Google chưa có mật khẩu — không đổi được theo cách này", 400);
+            if (user.passwordHash) {
+                if (!input.currentPassword) {
+                    throw new AppError("Cần mật khẩu hiện tại", 400);
+                }
+                const ok = await bcrypt.compare(input.currentPassword, user.passwordHash);
+                if (!ok) throw new AppError("Mật khẩu hiện tại không đúng", 401);
             }
-            if (!input.currentPassword) {
-                throw new AppError("Cần mật khẩu hiện tại", 400);
-            }
-            const ok = await bcrypt.compare(input.currentPassword, user.passwordHash);
-            if (!ok) throw new AppError("Mật khẩu hiện tại không đúng", 401);
             user.passwordHash = await bcrypt.hash(input.newPassword, 10);
         }
 

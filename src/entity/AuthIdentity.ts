@@ -36,6 +36,21 @@ export class AuthIdentity {
     @Column({ type: "varchar", length: 255, nullable: true })
     email: string | null;
 
+    @Column({ type: "varchar", length: 255, nullable: true })
+    displayName: string | null;
+
+    @Column({ type: "varchar", length: 255, nullable: true })
+    givenName: string | null;
+
+    @Column({ type: "varchar", length: 255, nullable: true })
+    familyName: string | null;
+
+    @Column({ type: "varchar", length: 500, nullable: true })
+    avatarUrl: string | null;
+
+    @Column({ type: "varchar", length: 32, nullable: true })
+    locale: string | null;
+
     @CreateDateColumn({ type: "datetime" })
     createdAt: Date;
 }

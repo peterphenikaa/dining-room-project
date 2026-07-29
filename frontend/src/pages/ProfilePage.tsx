@@ -39,7 +39,7 @@ export function ProfilePage() {
             } = {};
             if (email.trim() && email.trim() !== profile?.email) body.email = email.trim();
             if (newPassword) {
-                body.currentPassword = currentPassword;
+                if (profile?.hasPassword) body.currentPassword = currentPassword;
                 body.newPassword = newPassword;
             }
             if (!body.email && !body.newPassword) {
@@ -63,6 +63,8 @@ export function ProfilePage() {
     if (loading) return <p className="muted">Đang tải hồ sơ...</p>;
     if (!profile) return <p className="error">{error || "Không có dữ liệu"}</p>;
 
+    const google = profile.identities.find((i) => i.provider === "google") || null;
+
     return (
         <div className="page">
             <header className="page-header">
@@ -77,12 +79,6 @@ export function ProfilePage() {
                     <h2>Thông tin</h2>
                     <dl className="profile-dl">
                         <div>
-                            <dt>ID</dt>
-                            <dd>
-                                <code>{profile.id}</code>
-                            </dd>
-                        </div>
-                        <div>
                             <dt>Email</dt>
                             <dd>{profile.email}</dd>
                         </div>
@@ -94,7 +90,7 @@ export function ProfilePage() {
                         </div>
                         <div>
                             <dt>Mật khẩu</dt>
-                            <dd>{profile.hasPassword ? "Đã đặt" : "Chưa có (Google)"}</dd>
+                            <dd>{profile.hasPassword ? "Đã đặt" : "Chưa có"}</dd>
                         </div>
                     </dl>
 
@@ -104,20 +100,46 @@ export function ProfilePage() {
                     ) : (
                         <ul className="identity-list">
                             {profile.identities.map((i) => (
-                                <li key={i.id}>
-                                    <strong>{i.provider}</strong>
-                                    <span className="muted">
-                                        {i.email || i.providerSubject} ·{" "}
-                                        {new Date(i.createdAt).toLocaleString("vi-VN")}
-                                    </span>
+                                <li key={i.id} className="identity-item">
+                                    {i.avatarUrl ? (
+                                        <img
+                                            src={i.avatarUrl}
+                                            alt=""
+                                            className="identity-avatar"
+                                            referrerPolicy="no-referrer"
+                                        />
+                                    ) : (
+                                        <span className="identity-avatar placeholder">G</span>
+                                    )}
+                                    <div className="identity-meta">
+                                        <strong>{i.displayName || i.email || i.provider}</strong>
+                                        <span className="muted">{i.provider}</span>
+                                        {i.email && <span className="muted">{i.email}</span>}
+                                        {(i.givenName || i.familyName) && (
+                                            <span className="muted">
+                                                {[i.givenName, i.familyName].filter(Boolean).join(" ")}
+                                            </span>
+                                        )}
+                                        {i.locale && <span className="muted">Locale: {i.locale}</span>}
+                                        <span className="muted">
+                                            {new Date(i.createdAt).toLocaleString("vi-VN")}
+                                        </span>
+                                    </div>
                                 </li>
                             ))}
                         </ul>
+                    )}
+                    {google && !google.displayName && !google.avatarUrl && (
+                        <p className="hint">Đăng xuất rồi đăng nhập Google lại để đồng bộ tên/ảnh.</p>
                     )}
                 </section>
 
                 <section className="panel-box">
                     <h2>Cập nhật</h2>
+                    <p className="hint">
+                        Email/mật khẩu dùng để đăng nhập app. Nếu login bằng Google thì vẫn là
+                        cùng tài khoản Google đã liên kết.
+                    </p>
                     <form className="form" onSubmit={handleSubmit}>
                         <label>
                             Email
@@ -128,7 +150,7 @@ export function ProfilePage() {
                                 required
                             />
                         </label>
-                        {profile.hasPassword && (
+                        {profile.hasPassword ? (
                             <>
                                 <label>
                                     Mật khẩu hiện tại
@@ -150,9 +172,18 @@ export function ProfilePage() {
                                     />
                                 </label>
                             </>
-                        )}
-                        {!profile.hasPassword && (
-                            <p className="hint">Tài khoản Google — đổi mật khẩu không áp dụng.</p>
+                        ) : (
+                            <label>
+                                Đặt mật khẩu
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    minLength={8}
+                                    autoComplete="new-password"
+                                    placeholder="Ít nhất 8 ký tự"
+                                />
+                            </label>
                         )}
                         {error && <p className="error">{error}</p>}
                         {ok && <p className="ok">{ok}</p>}

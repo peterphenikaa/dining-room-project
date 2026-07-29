@@ -199,11 +199,21 @@ export function UsersPage() {
                                 ) : (
                                     <ul className="identity-list">
                                         {editing.identities.map((i) => (
-                                            <li key={i.id}>
-                                                <strong>{i.provider}</strong>
-                                                <span className="muted">
-                                                    {i.email || i.providerSubject}
-                                                </span>
+                                            <li key={i.id} className="identity-item">
+                                                {i.avatarUrl ? (
+                                                    <img
+                                                        src={i.avatarUrl}
+                                                        alt=""
+                                                        className="identity-avatar"
+                                                        referrerPolicy="no-referrer"
+                                                    />
+                                                ) : null}
+                                                <div className="identity-meta">
+                                                    <strong>{i.displayName || i.provider}</strong>
+                                                    <span className="muted">
+                                                        {i.email || i.providerSubject}
+                                                    </span>
+                                                </div>
                                             </li>
                                         ))}
                                     </ul>
