@@ -27,6 +27,25 @@ services:
     volumes:
       - redis_data:/data
 
+  # Redpanda = Kafka API tương thích — nhẹ, dễ học local
+  kafka:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.4
+    container_name: dining_kafka
+    restart: always
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://kafka:9092,external://localhost:19092
+      - --smp 1
+      - --memory 512M
+      - --mode dev-container
+      - --default-log-level=warn
+    ports:
+      - "${KAFKA_HOST_PORT:-19092}:19092"
+    volumes:
+      - kafka_data:/var/lib/redpanda/data
+
   minio:
     image: minio/minio:latest
     container_name: dining_minio
@@ -58,6 +77,7 @@ services:
     depends_on:
       - db
       - redis
+      - kafka
     volumes:
       - .:/app
       - app_node_modules:/app/node_modules
@@ -67,6 +87,21 @@ services:
       timeout: 3s
       retries: 5
       start_period: 20s
+
+  kafka-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    container_name: kafka_auth_consumer
+    restart: always
+    command: ["npx", "nodemon", "--config", "nodemon.kafka.json"]
+    env_file:
+      - .env
+    depends_on:
+      - kafka
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
 
   app:
     build:
@@ -131,4 +166,5 @@ volumes:
   db_data:
   redis_data:
   minio_data:
+  kafka_data:
   app_node_modules:

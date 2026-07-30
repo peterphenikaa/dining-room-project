@@ -4,6 +4,7 @@ import {
     googleOauthScopes,
 } from "../../../config/env";
 import { AppError } from "../../../utils/AppError";
+import { publishAuthUserEvent } from "../../../messaging/authEventPublisher";
 import { AuthDataSource } from "../data-source";
 import { takeGoogleOAuthPending, saveGoogleOAuthPending } from "../oauth/googleOAuthPending";
 import { AuthIdentity } from "../entity/AuthIdentity";
@@ -309,6 +310,7 @@ export class GoogleAuthService {
         }
 
         let user = await userRepo.findOneBy({ email: identity.email });
+        let createdUser = false;
         if (!user) {
             user = await userRepo.save(
                 userRepo.create({
@@ -317,6 +319,7 @@ export class GoogleAuthService {
                     role: "user",
                 }),
             );
+            createdUser = true;
         }
 
         const created = identityRepo.create({
@@ -326,6 +329,17 @@ export class GoogleAuthService {
         });
         applyGoogleProfile(created, identity);
         await identityRepo.save(created);
+
+        if (createdUser) {
+            await publishAuthUserEvent({
+                type: "UserCreated",
+                userId: user.id,
+                email: user.email,
+                role: user.role,
+                source: "google",
+                occurredAt: new Date().toISOString(),
+            });
+        }
 
         return user;
     }

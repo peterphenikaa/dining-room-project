@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { AppError } from "../../../utils/AppError";
+import { publishAuthUserEvent } from "../../../messaging/authEventPublisher";
 import { AuthDataSource } from "../data-source";
 import { AuthIdentity } from "../entity/AuthIdentity";
 import { User } from "../entity/User";
@@ -107,6 +108,8 @@ export class UserService {
         const user = await userRepo().findOneBy({ id: targetId });
         if (!user) throw new AppError("Không tìm thấy người dùng", 404);
 
+        const previousRole = user.role;
+
         if (input.email && input.email !== user.email) {
             const taken = await userRepo().findOneBy({ email: input.email });
             if (taken) throw new AppError("Email đã được sử dụng", 409);
@@ -125,6 +128,19 @@ export class UserService {
         }
 
         await userRepo().save(user);
+
+        if (input.role && input.role !== previousRole) {
+            await publishAuthUserEvent({
+                type: "UserRoleChanged",
+                userId: user.id,
+                email: user.email,
+                fromRole: previousRole,
+                toRole: user.role,
+                actorId,
+                occurredAt: new Date().toISOString(),
+            });
+        }
+
         return toProfile(user, await loadIdentities(user.id));
     }
 

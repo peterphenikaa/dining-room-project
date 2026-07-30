@@ -47,6 +47,18 @@ export const redisConfig = {
     port: envInt("REDIS_PORT", 6379),
 };
 
+/** Kafka (practice domain events) — Auth publish, consumer log */
+export const kafkaConfig = {
+    enabled: envBool("KAFKA_ENABLED", true),
+    brokers: (process.env.KAFKA_BROKERS || "localhost:9092")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    clientId: process.env.KAFKA_CLIENT_ID || "phongan-app",
+    authUserTopic: process.env.KAFKA_AUTH_USER_TOPIC || "auth.user.events",
+    consumerGroup: process.env.KAFKA_CONSUMER_GROUP || "auth-events-logger",
+};
+
 export const minioConfig = {
     endpointHost: env("MINIO_ENDPOINT", "localhost"),
     endpointPort: envInt("MINIO_PORT", 9000),

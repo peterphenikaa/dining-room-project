@@ -67,7 +67,7 @@ MinIO: `minioadmin` / `minioadmin`.
 - Zod · cursor pagination · Socket.IO `dining:changed`
 
 ### Ops
-- Docker Compose: `app`, `worker`, `db`, `redis`, `minio`, `phpmyadmin` · FE chạy local (`npm run dev`)
+- Docker Compose: `app`, `auth`, `kafka`, `kafka-consumer`, `worker`, `db`, `redis`, `minio`, `phpmyadmin` · FE local
 
 ---
 
@@ -75,9 +75,9 @@ MinIO: `minioadmin` / `minioadmin`.
 
 | Tầng | Công nghệ |
 |------|-----------|
-| BE | Node, Express 5, TypeORM, MySQL 8, Zod, Socket.IO, BullMQ, ioredis, Multer, Sharp, AWS S3 SDK |
+| BE | Node, Express 5, TypeORM, MySQL 8, Zod, Socket.IO, BullMQ, KafkaJS, ioredis, Multer, Sharp, AWS S3 SDK |
 | FE | React 19, TypeScript, Vite, Axios, socket.io-client |
-| Storage / Queue | MinIO (S3), Redis |
+| Storage / Queue | MinIO (S3), Redis, Kafka (Auth domain events) |
 
 ---
 
@@ -87,3 +87,4 @@ MinIO: `minioadmin` / `minioadmin`.
 - **Phase 1–2:** Auth module + process `auth:3003` / DB `phongan_auth`; Dining proxy `/api/auth` + `/api/users`
 - **Phase 3:** Dining chỉ dùng [`src/security/`](src/security/) (JWT verify). Image Dining (`Dockerfile.dining`) **không** chứa `src/modules/auth` / Google OAuth.
 - Env: [`.env`](.env) shared · [`.env.auth`](.env.auth) · [`.env.dining`](.env.dining)
+- **Kafka practice:** Auth publish `UserCreated` / `UserRoleChanged` → [docs/kafka-practice.md](docs/kafka-practice.md)

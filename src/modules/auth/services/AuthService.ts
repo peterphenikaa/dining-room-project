@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { AppError } from "../../../utils/AppError";
+import { publishAuthUserEvent } from "../../../messaging/authEventPublisher";
 import { AuthDataSource } from "../data-source";
 import { User } from "../entity/User";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
@@ -37,6 +38,14 @@ export class AuthService {
             role: "user",
         });
         const saved = await userRepository.save(user);
+        await publishAuthUserEvent({
+            type: "UserCreated",
+            userId: saved.id,
+            email: saved.email,
+            role: saved.role,
+            source: "register",
+            occurredAt: new Date().toISOString(),
+        });
         return issueTokenPair(saved);
     }
 
