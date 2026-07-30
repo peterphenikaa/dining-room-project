@@ -1,14 +1,14 @@
 import { Response } from "express";
-import { googleConfig } from "../config/env";
+import { googleConfig } from "../../../config/env";
+import { AppError } from "../../../utils/AppError";
+import { SuccessResponse } from "../../../utils/SuccessResponse";
+import { loginSchema, registerSchema } from "../schemas/authSchemas";
+import { updateMyProfileSchema } from "../schemas/userSchemas";
 import { AuthService } from "../services/AuthService";
 import { GoogleAuthService } from "../services/GoogleAuthService";
 import { UserService } from "../services/UserService";
-import { loginSchema, registerSchema } from "../schemas/authSchemas";
-import { updateMyProfileSchema } from "../schemas/userSchemas";
-import { AuthRequest } from "../types/auth";
-import { AppError } from "../utils/AppError";
+import type { AuthRequest } from "../types";
 import { clearAuthCookies, REFRESH_COOKIE, setAuthCookies } from "../utils/authCookie";
-import { SuccessResponse } from "../utils/SuccessResponse";
 
 export const register = async (req: AuthRequest, res: Response) => {
     const { email, password } = registerSchema.parse(req.body);

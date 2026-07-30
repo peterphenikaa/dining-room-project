@@ -14,11 +14,14 @@ services:
       - "${DB_HOST_PORT}:${DB_PORT}"
     volumes:
       - db_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
 
   redis:
     image: redis:7-alpine
     container_name: dining_redis
     restart: always
+    env_file:
+      - .env
     ports:
       - "${REDIS_HOST_PORT}:${REDIS_PORT}"
     volumes:
@@ -29,6 +32,8 @@ services:
     container_name: dining_minio
     restart: always
     command: server /data --console-address ":${MINIO_CONSOLE_PORT}"
+    env_file:
+      - .env
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
@@ -38,29 +43,65 @@ services:
     volumes:
       - minio_data:/data
 
-  app:
-    build: .
-    container_name: express_app
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    container_name: auth_service
     restart: always
+    command: ["npx", "nodemon", "--config", "nodemon.auth.json"]
     ports:
-      - "${APP_HOST_PORT}:${PORT}"
+      - "${AUTH_HOST_PORT:-3003}:${AUTH_PORT:-3003}"
     env_file:
       - .env
+      - .env.auth
     depends_on:
       - db
       - redis
-      - minio
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||3003)+'/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dining
+    container_name: express_app
+    restart: always
+    ports:
+      - "${APP_HOST_PORT:-3002}:${PORT:-3002}"
+    env_file:
+      - .env
+      - .env.dining
+    depends_on:
+      auth:
+        condition: service_healthy
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
     volumes:
       - .:/app
       - app_node_modules:/app/node_modules
 
   worker:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dining
     container_name: dining_worker
     restart: always
-    command: ["npx", "nodemon", "--watch", "src", "--ext", "ts,json", "--exec", "npx tsc && node dist/worker.js", "--legacy-watch"]
+    command: ["npx", "nodemon", "--watch", "src", "--ext", "ts,json", "--exec", "npx tsc -p tsconfig.dining.json && node dist/worker.js", "--legacy-watch"]
     env_file:
       - .env
+      - .env.dining
     depends_on:
       - db
       - redis

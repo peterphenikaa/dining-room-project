@@ -1,9 +1,9 @@
 import { Response } from "express";
-import { AuthRequest } from "../types/auth";
-import { AppError } from "../utils/AppError";
-import { SuccessResponse } from "../utils/SuccessResponse";
+import { AppError } from "../../../utils/AppError";
+import { SuccessResponse } from "../../../utils/SuccessResponse";
 import { adminUpdateUserSchema } from "../schemas/userSchemas";
 import { UserService } from "../services/UserService";
+import type { AuthRequest } from "../types";
 
 export const listUsers = async (_req: AuthRequest, res: Response) => {
     const users = await UserService.listProfiles();

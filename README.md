@@ -8,7 +8,13 @@ API Express + TypeORM + MySQL · SPA React · Socket.IO · Redis/BullMQ · MinIO
 
 ```bash
 docker compose up -d --build
+
+docker compose exec auth npm run migration:run:auth
 docker compose exec app npm run migration:run
+
+# Kiểm tra image Dining không có Google OAuth
+docker compose build app
+npm run verify:dining-image
 ```
 
 ### Frontend (local)
@@ -19,12 +25,14 @@ npm install
 npm run dev
 ```
 
-FE: http://localhost:5173 (Vite proxy `/api` + `/socket.io` → API :3002)
+FE: http://localhost:5173 (Vite proxy `/api` + `/socket.io` → Dining API :3002)  
+Dining proxy `/api/auth` + `/api/users` → Auth service :3003. **FE không đổi URL.**
 
 | Service | URL |
 |---------|-----|
 | FE (local Vite) | http://localhost:5173 |
-| API | http://localhost:3002 |
+| Dining API (gateway) | http://localhost:3002 |
+| Auth service | http://localhost:3003 |
 | MinIO API / Console | http://localhost:9000 / http://localhost:9001 |
 | phpMyAdmin | http://localhost:8081 |
 | Redis | localhost:6379 |
@@ -70,3 +78,12 @@ MinIO: `minioadmin` / `minioadmin`.
 | BE | Node, Express 5, TypeORM, MySQL 8, Zod, Socket.IO, BullMQ, ioredis, Multer, Sharp, AWS S3 SDK |
 | FE | React 19, TypeScript, Vite, Axios, socket.io-client |
 | Storage / Queue | MinIO (S3), Redis |
+
+---
+
+## Architecture notes
+
+- **Phase 0:** [docs/adr/0001-auth-dining-boundary.md](docs/adr/0001-auth-dining-boundary.md)
+- **Phase 1–2:** Auth module + process `auth:3003` / DB `phongan_auth`; Dining proxy `/api/auth` + `/api/users`
+- **Phase 3:** Dining chỉ dùng [`src/security/`](src/security/) (JWT verify). Image Dining (`Dockerfile.dining`) **không** chứa `src/modules/auth` / Google OAuth.
+- Env: [`.env`](.env) shared · [`.env.auth`](.env.auth) · [`.env.dining`](.env.dining)

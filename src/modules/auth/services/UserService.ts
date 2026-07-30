@@ -1,11 +1,12 @@
 import bcrypt from "bcryptjs";
-import { AppDataSource } from "../data-source";
+import { AppError } from "../../../utils/AppError";
+import { AuthDataSource } from "../data-source";
 import { AuthIdentity } from "../entity/AuthIdentity";
-import { User, UserRole } from "../entity/User";
-import { AppError } from "../utils/AppError";
+import { User } from "../entity/User";
+import type { UserRole } from "../types";
 
-const userRepo = () => AppDataSource.getRepository(User);
-const identityRepo = () => AppDataSource.getRepository(AuthIdentity);
+const userRepo = () => AuthDataSource.getRepository(User);
+const identityRepo = () => AuthDataSource.getRepository(AuthIdentity);
 
 export type UserProfile = {
     id: string;

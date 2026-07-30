@@ -1,11 +1,15 @@
 {
   "scripts": {
     "build": "tsc",
+    "build:dining": "tsc -p tsconfig.dining.json",
     "start": "node dist/index.js",
+    "start:auth": "node dist/authMain.js",
     "worker": "node dist/worker.js",
-    "migration:run": "tsc && typeorm migration:run -d dist/data-source.js",
-    "seed:dining": "tsc && node dist/seed/seedDiningData.js",
-    "test:api": "node tests/api-smoke.cjs"
+    "migration:run": "tsc -p tsconfig.dining.json && typeorm migration:run -d dist/data-source.js",
+    "migration:run:auth": "tsc && typeorm migration:run -d dist/modules/auth/data-source.js",
+    "seed:dining": "tsc -p tsconfig.dining.json && node dist/seed/seedDiningData.js",
+    "test:api": "node tests/api-smoke.cjs",
+    "verify:dining-image": "sh scripts/verify-dining-image.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -16,6 +20,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.7",
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",

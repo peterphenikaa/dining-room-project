@@ -2,12 +2,12 @@ import {
     assertGoogleOAuthConfigured,
     googleConfig,
     googleOauthScopes,
-} from "../config/env";
-import { takeGoogleOAuthPending, saveGoogleOAuthPending } from "../auth/googleOAuthPending";
-import { AppDataSource } from "../data-source";
+} from "../../../config/env";
+import { AppError } from "../../../utils/AppError";
+import { AuthDataSource } from "../data-source";
+import { takeGoogleOAuthPending, saveGoogleOAuthPending } from "../oauth/googleOAuthPending";
 import { AuthIdentity } from "../entity/AuthIdentity";
 import { User } from "../entity/User";
-import { AppError } from "../utils/AppError";
 import { createPkcePair, randomUrlSafe } from "../utils/pkce";
 import { signAccessToken, signRefreshToken } from "../utils/jwt";
 
@@ -112,8 +112,8 @@ export class GoogleAuthService {
     }
 
     static async unlinkGoogle(userId: string) {
-        const identityRepo = AppDataSource.getRepository(AuthIdentity);
-        const userRepo = AppDataSource.getRepository(User);
+        const identityRepo = AuthDataSource.getRepository(AuthIdentity);
+        const userRepo = AuthDataSource.getRepository(User);
 
         const user = await userRepo.findOneBy({ id: userId });
         if (!user) throw new AppError("Không tìm thấy người dùng", 404);
@@ -257,8 +257,8 @@ export class GoogleAuthService {
         userId: string,
         identity: GoogleIdentity,
     ): Promise<User> {
-        const identityRepo = AppDataSource.getRepository(AuthIdentity);
-        const userRepo = AppDataSource.getRepository(User);
+        const identityRepo = AuthDataSource.getRepository(AuthIdentity);
+        const userRepo = AuthDataSource.getRepository(User);
 
         const user = await userRepo.findOneBy({ id: userId });
         if (!user) throw new AppError("Không tìm thấy người dùng", 404);
@@ -295,8 +295,8 @@ export class GoogleAuthService {
     }
 
     private static async findOrLinkUser(identity: GoogleIdentity): Promise<User> {
-        const identityRepo = AppDataSource.getRepository(AuthIdentity);
-        const userRepo = AppDataSource.getRepository(User);
+        const identityRepo = AuthDataSource.getRepository(AuthIdentity);
+        const userRepo = AuthDataSource.getRepository(User);
 
         const existingIdentity = await identityRepo.findOne({
             where: { provider: "google", providerSubject: identity.sub },

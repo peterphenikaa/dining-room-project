@@ -1,8 +1,6 @@
 import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
-import { AuthUser } from "../types/auth";
-import { ACCESS_COOKIE } from "../utils/authCookie";
-import { verifyAccessToken } from "../utils/jwt";
+import { ACCESS_COOKIE, type AuthUser, verifyAccessToken } from "../security";
 
 export type DiningEntityType = "room" | "table" | "cabinet" | "chair" | "accessory";
 export type DiningAction = "create" | "update" | "delete";

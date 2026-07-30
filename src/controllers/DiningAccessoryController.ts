@@ -7,7 +7,7 @@ import {
 } from "../schemas/diningSchemas";
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas";
 import { emitDiningChanged } from "../realtime/io";
-import { AuthRequest } from "../types/auth";
+import type { AuthRequest } from "../security";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 

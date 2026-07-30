@@ -25,6 +25,15 @@ export const appConfig = {
     nodeEnv: process.env.NODE_ENV || "development",
 };
 
+/** Dining → Auth (Docker service name hoặc localhost) */
+export const authServiceConfig = {
+    url: (process.env.AUTH_SERVICE_URL || "http://localhost:3003").replace(/\/$/, ""),
+    /** Proxy timeout (ms) */
+    proxyTimeoutMs: envInt("AUTH_PROXY_TIMEOUT_MS", 10_000),
+    /** Health check Auth timeout (ms) */
+    healthTimeoutMs: envInt("AUTH_HEALTH_TIMEOUT_MS", 2_000),
+};
+
 export const dbConfig = {
     host: env("DB_HOST", "localhost"),
     port: envInt("DB_PORT", 3306),

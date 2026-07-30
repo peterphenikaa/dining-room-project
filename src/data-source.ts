@@ -6,9 +6,8 @@ import { DiningTable } from "./entity/DiningTable"
 import { DiningChair } from "./entity/DiningChair"
 import { DiningCabinet } from "./entity/DiningCabinet"
 import { DiningAccessory } from "./entity/DiningAccessory"
-import { User } from "./entity/User"
-import { AuthIdentity } from "./entity/AuthIdentity"
 
+/** Dining DB — không còn User / AuthIdentity (Phase 2) */
 export const AppDataSource = new DataSource({
     type: "mysql",
     host: dbConfig.host,
@@ -18,7 +17,7 @@ export const AppDataSource = new DataSource({
     database: dbConfig.name,
     synchronize: false,
     logging: false,
-    entities: [DiningRoom, DiningTable, DiningChair, DiningCabinet, DiningAccessory, User, AuthIdentity],
+    entities: [DiningRoom, DiningTable, DiningChair, DiningCabinet, DiningAccessory],
     migrations: [__dirname + "/migration/**/*{.ts,.js}"],
     subscribers: [],
 })

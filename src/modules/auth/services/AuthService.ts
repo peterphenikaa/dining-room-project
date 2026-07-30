@@ -1,10 +1,10 @@
 import bcrypt from "bcryptjs";
-import { AppDataSource } from "../data-source";
+import { AppError } from "../../../utils/AppError";
+import { AuthDataSource } from "../data-source";
 import { User } from "../entity/User";
-import { AppError } from "../utils/AppError";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt";
 
-const userRepository = AppDataSource.getRepository(User);
+const userRepository = AuthDataSource.getRepository(User);
 
 function toPublicUser(user: User) {
     return {

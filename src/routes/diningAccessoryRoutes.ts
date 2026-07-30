@@ -7,8 +7,7 @@ import {
     deleteAccessory,
 } from "../controllers/DiningAccessoryController";
 import { makeImageControllers } from "../controllers/EntityImageController";
-import { authenticate } from "../middlewares/authenticate";
-import { authorize } from "../middlewares/authorize";
+import { authenticate, authorize } from "../security";
 import { imageUpload } from "../middlewares/imageUpload";
 
 const router = Router();

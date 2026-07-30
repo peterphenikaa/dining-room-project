@@ -2,7 +2,7 @@ import { Response } from "express";
 import { EntityImageService } from "../services/EntityImageService";
 import { idParamSchema } from "../schemas/diningSchemas";
 import { emitDiningChanged, type DiningEntityType } from "../realtime/io";
-import { AuthRequest } from "../types/auth";
+import type { AuthRequest } from "../security";
 import { AppError } from "../utils/AppError";
 import { SuccessResponse } from "../utils/SuccessResponse";
 

@@ -1,0 +1,24 @@
+FROM node:20-bookworm-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Đảm bảo không còn Auth/Google OAuth trong image Dining
+RUN rm -rf src/modules/auth src/authMain.ts \
+  && test ! -e src/modules/auth/services/GoogleAuthService.ts \
+  && ! grep -R "GoogleAuthService" src --include='*.ts' \
+  && ! grep -R "accounts.google.com" src --include='*.ts'
+
+RUN npx tsc -p tsconfig.dining.json
+
+EXPOSE 3002
+
+CMD ["npx", "nodemon"]

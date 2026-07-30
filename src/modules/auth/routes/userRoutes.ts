@@ -5,8 +5,7 @@ import {
     listUsers,
     updateUser,
 } from "../controllers/UserController";
-import { authenticate } from "../middlewares/authenticate";
-import { authorize } from "../middlewares/authorize";
+import { authenticate, authorize } from "../middlewares/authenticate";
 
 const router = Router();
 

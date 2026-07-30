@@ -1,0 +1,8 @@
+# Auth image — không cần FE / dining-heavy docs
+frontend
+Dockerfile.dining
+.dockerignore.dining
+.env.dining
+.git
+**/node_modules
+dist

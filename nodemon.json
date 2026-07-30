@@ -1,6 +1,6 @@
 {
   "watch": ["src"],
   "ext": "ts,json",
-  "exec": "npx tsc && node dist/index.js",
+    "exec": "npx tsc -p tsconfig.dining.json && node dist/index.js",
   "legacyWatch": true
 }

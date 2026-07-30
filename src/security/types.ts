@@ -1,5 +1,6 @@
 import { Request } from "express";
-import { UserRole } from "../entity/User";
+
+export type UserRole = "admin" | "user";
 
 export type AuthUser = {
     id: string;

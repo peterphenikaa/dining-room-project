@@ -1,10 +1,9 @@
 import Redis from "ioredis";
-import { redisConfig } from "../config/env";
+import { redisConfig } from "../../../config/env";
 
 export type GoogleOAuthPending = {
     codeVerifier: string;
     createdAt: number;
-    /** Có mặt = đang liên kết Google vào user đã login */
     linkUserId?: string;
 };
 

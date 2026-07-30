@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { AuthUser } from "../types/auth";
 import { AppError } from "../utils/AppError";
+import type { AuthUser } from "./types";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || `${JWT_SECRET}-refresh`;
