@@ -1,6 +1,6 @@
 # Quản lý Phòng ăn / Bàn ăn
 
-API Express + TypeORM + MySQL · SPA React · Socket.IO · Redis/BullMQ · MinIO (S3).
+API Express + TypeORM + MySQL · SPA React · Socket.IO · Redis/BullMQ · MinIO (S3) · **Payment (PayOS)**.
 
 ## Chạy nhanh
 
@@ -11,10 +11,7 @@ docker compose up -d --build
 
 docker compose exec auth npm run migration:run:auth
 docker compose exec app npm run migration:run
-
-# Kiểm tra image Dining không có Google OAuth
-docker compose build app
-npm run verify:dining-image
+docker compose exec payment npm run migration:run:payment
 ```
 
 ### Frontend (local)
@@ -25,49 +22,70 @@ npm install
 npm run dev
 ```
 
-FE: http://localhost:5173 (Vite proxy `/api` + `/socket.io` → Dining API :3002)  
-Dining proxy `/api/auth` + `/api/users` → Auth service :3003. **FE không đổi URL.**
+FE: http://localhost:5173 — Vite proxy `/api` + `/socket.io` → Dining `:3002`.  
+Dining proxy: `/api/auth` `/api/users` → Auth `:3003` · `/api/payments` → Payment `:3004`.
 
 | Service | URL |
 |---------|-----|
-| FE (local Vite) | http://localhost:5173 |
-| Dining API (gateway) | http://localhost:3002 |
-| Auth service | http://localhost:3003 |
-| MinIO API / Console | http://localhost:9000 / http://localhost:9001 |
+| FE | http://localhost:5173 |
+| Dining (gateway) | http://localhost:3002 |
+| Auth | http://localhost:3003 |
+| **Payment** | http://localhost:3004 |
+| MinIO / Console | :9000 / :9001 |
 | phpMyAdmin | http://localhost:8081 |
-| Redis | localhost:6379 |
 
-Demo: `admin@demo.com` / `user@demo.com` — mật khẩu `demo`.  
-MinIO: `minioadmin` / `minioadmin`.
+Demo: `admin@demo.com` / `user@demo.com` — mk `demo`.
 
-> Nếu `docker compose build` lỗi ASCII trên Windows (path tiếng Việt):  
-> `$env:DOCKER_BUILDKIT=0; $env:COMPOSE_DOCKER_CLI_BUILD=0; docker compose up -d --build`
+> Windows path tiếng Việt: `$env:DOCKER_BUILDKIT=0; $env:COMPOSE_DOCKER_CLI_BUILD=0; docker compose up -d --build`
 
 ---
 
-## Ảnh + MinIO + BullMQ
+## Đã làm được (ngắn)
 
-- Mỗi row (room/table/cabinet/chair/accessory): `imageUrl` / `imageKey` + `imageThumbUrl` / `imageThumbKey`
-- Upload: `POST /api/{rooms|tables|...}/:id/image` (multipart field `image`) → lưu gốc lên MinIO (AWS S3 SDK) → enqueue job `process-image`
-- Worker (`dining_worker`): Sharp resize → WebP thumb → cập nhật DB
-- Xóa ảnh: `DELETE /api/.../:id/image`
----
+### Catalog & CRUD
+- Room → Table / Cabinet · Table → Chair / Accessory · ảnh MinIO + thumb (BullMQ/Sharp)
+- Routes → Controllers → Services · Zod · cursor pagination · Socket.IO
 
-## Đã làm được
+### Auth
+- JWT + refresh cookie · RBAC · Auth service tách process/DB ([ADR](docs/adr/0001-auth-dining-boundary.md))
 
-### Domain & CRUD
-- 5 entity: **Room → Table / Cabinet**, **Table → Chair / Accessory** (FK + CASCADE)
-- CRUD + ảnh; cột `quantity` (≥ 1) trên Table / Cabinet / Chair / Accessory
-- Tầng **Routes → Controllers → Services**; envelope `{ status, message, data }`
+### Shop / giỏ / đơn
+- Giá + tồn kho · Cart · Checkout → Order `pending_payment` · hủy hoàn tồn
+- 1 order ↔ **1 payment** (`orderId` unique)
 
-### Auth & phân quyền
-- JWT access + refresh httpOnly cookie; RBAC admin ghi / user đọc
+### Payment + PayOS
+- Service `payment` (DB `phongan_payment`)
+- Checkout: `POST /api/orders/:id/payos-checkout` → `checkoutUrl`
+- Webhook: PayOS → `POST /api/payments/payos/webhook` → payment `paid` → Dining `POST /api/orders/internal/mark-paid` → order `paid`
+- Fallback nếu webhook miss: `POST /api/orders/payos-sync` (theo `orderCode`) hoặc `/:id/payos-sync`
+- Admin: Mark paid thủ công (test không cần PayOS)
 
-### Validation / Pagination / Realtime
-- Zod · cursor pagination · Socket.IO `dining:changed`
+Chi tiết: [docs/payos-ready.md](docs/payos-ready.md)
 
-### Ops
-- Docker Compose: `app`, `auth`, `kafka`, `kafka-consumer`, `worker`, `db`, `redis`, `minio`, `phpmyadmin` · FE local
+### Env
+| File | Dùng cho |
+|------|----------|
+| `.env` | shared (db, redis, minio, jwt, cors) |
+| `.env.auth` | Auth |
+| `.env.dining` | Dining (+ `PAYMENT_CALLBACK_SECRET`) |
+| **`.env.payment`** | PayOS keys, `PAYOS_RETURN_URL` / `CANCEL_URL` (= `http://localhost:5173/orders`), `DINING_INTERNAL_URL` |
+
+Đổi `.env.payment` xong cần: `docker compose up -d --force-recreate payment`
+
+### Webhook local (ngrok)
+PayOS không gọi `localhost`. Tunnel **Dining :3002** (đã proxy `/api/payments`):
+
+```bash
+# Windows thường: ngrok http 3002
+# Nếu ngrok.exe bị AV xóa: dùng WSL
+wsl -e bash /mnt/c/ngrok/wsl-run-ngrok.sh
+```
+
+PayOS dashboard → webhook URL: `https://<tunnel>/api/payments/payos/webhook`
+
+### Ops / khác
+- Compose: `app`, `auth`, `payment`, `worker`, `kafka` (+ consumer), `db`, `redis`, `minio`, `phpmyadmin`
+- Kafka Auth events: [docs/kafka-practice.md](docs/kafka-practice.md)
 
 ---
 
@@ -75,16 +93,6 @@ MinIO: `minioadmin` / `minioadmin`.
 
 | Tầng | Công nghệ |
 |------|-----------|
-| BE | Node, Express 5, TypeORM, MySQL 8, Zod, Socket.IO, BullMQ, KafkaJS, ioredis, Multer, Sharp, AWS S3 SDK |
+| BE | Node, Express, TypeORM, MySQL 8, Zod, Socket.IO, BullMQ, KafkaJS, PayOS SDK |
 | FE | React 19, TypeScript, Vite, Axios, socket.io-client |
-| Storage / Queue | MinIO (S3), Redis, Kafka (Auth domain events) |
-
----
-
-## Architecture notes
-
-- **Phase 0:** [docs/adr/0001-auth-dining-boundary.md](docs/adr/0001-auth-dining-boundary.md)
-- **Phase 1–2:** Auth module + process `auth:3003` / DB `phongan_auth`; Dining proxy `/api/auth` + `/api/users`
-- **Phase 3:** Dining chỉ dùng [`src/security/`](src/security/) (JWT verify). Image Dining (`docker/Dockerfile.dining`) **không** chứa `src/modules/auth` / Google OAuth.
-- Env: [`.env`](.env) shared · [`.env.auth`](.env.auth) · [`.env.dining`](.env.dining)
-- **Kafka practice:** Auth publish `UserCreated` / `UserRoleChanged` → [docs/kafka-practice.md](docs/kafka-practice.md)
+| Infra | Docker Compose, MinIO, Redis, Kafka |
