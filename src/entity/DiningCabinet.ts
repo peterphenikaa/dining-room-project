@@ -18,6 +18,10 @@ export class DiningCabinet {
     @Column({ type: "int", default: 1 })
     quantity: number
 
+    /** Giá VND (integer) */
+    @Column({ type: "int", default: 0 })
+    price: number
+
     @Column({ type: "varchar", length: 500, nullable: true })
     imageUrl: string | null
 

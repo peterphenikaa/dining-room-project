@@ -3,6 +3,7 @@ import * as accessoriesApi from "../api/accessories";
 import * as tablesApi from "../api/tables";
 import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
+import { AddToCartButton } from "../components/AddToCartButton";
 import { OptionSelect } from "../components/OptionSelect";
 import { RowActions } from "../components/RowActions";
 import {
@@ -13,6 +14,7 @@ import type { DiningAccessory, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
 import { getApiErrorMessage } from "../utils/apiError";
+import { formatVnd } from "../utils/formatMoney";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { CursorPager } from "../components/CursorPager";
@@ -23,6 +25,7 @@ const emptyForm = {
     name: "",
     type: "",
     quantity: "1",
+    price: "0",
     diningTableId: "",
 };
 
@@ -120,6 +123,7 @@ export function AccessoriesPage() {
             name: row.name,
             type: row.type,
             quantity: String(row.quantity ?? 1),
+            price: String(row.price ?? 0),
             diningTableId: row.diningTable?.id || "",
         });
         setImageFile(null);
@@ -137,6 +141,7 @@ export function AccessoriesPage() {
                 name: form.name.trim(),
                 type: form.type.trim(),
                 quantity: Number(form.quantity),
+                price: Number(form.price),
                 diningTableId: form.diningTableId,
             };
             const saved = editingId
@@ -213,8 +218,9 @@ export function AccessoriesPage() {
                                     <th>Tên</th>
                                     <th>Loại</th>
                                     <th>SL</th>
+                                    <th>Giá</th>
                                     <th>Bàn</th>
-                                    {canWrite && <th></th>}
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -230,18 +236,28 @@ export function AccessoriesPage() {
                                         <td>{row.name}</td>
                                         <td>{row.type}</td>
                                         <td>{row.quantity}</td>
+                                        <td>{formatVnd(row.price ?? 0)}</td>
                                         <td>{row.diningTable?.name || "—"}</td>
-                                        {canWrite && (
-                                            <RowActions
-                                                onEdit={() => startEdit(row)}
-                                                onDelete={() => setPendingDeleteId(row.id)}
-                                            />
-                                        )}
+                                        <td>
+                                            <div className="row-actions-inline">
+                                                <AddToCartButton
+                                                    productType="accessory"
+                                                    productId={row.id}
+                                                    disabled={(row.price ?? 0) <= 0 || row.quantity <= 0}
+                                                />
+                                                {canWrite && (
+                                                    <RowActions
+                                                        onEdit={() => startEdit(row)}
+                                                        onDelete={() => setPendingDeleteId(row.id)}
+                                                    />
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                                 {!loading && items.length === 0 && (
                                     <tr>
-                                        <td colSpan={canWrite ? 6 : 5}>Chưa có dữ liệu</td>
+                                        <td colSpan={7}>Chưa có dữ liệu</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -284,6 +300,17 @@ export function AccessoriesPage() {
                                 required
                                 allowEmpty={false}
                             />
+                            <label>
+                                Giá (VND)
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step={1000}
+                                    value={form.price}
+                                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                    required
+                                />
+                            </label>
                             <label>
                                 Bàn ăn
                                 <select

@@ -85,6 +85,6 @@ MinIO: `minioadmin` / `minioadmin`.
 
 - **Phase 0:** [docs/adr/0001-auth-dining-boundary.md](docs/adr/0001-auth-dining-boundary.md)
 - **Phase 1–2:** Auth module + process `auth:3003` / DB `phongan_auth`; Dining proxy `/api/auth` + `/api/users`
-- **Phase 3:** Dining chỉ dùng [`src/security/`](src/security/) (JWT verify). Image Dining (`Dockerfile.dining`) **không** chứa `src/modules/auth` / Google OAuth.
+- **Phase 3:** Dining chỉ dùng [`src/security/`](src/security/) (JWT verify). Image Dining (`docker/Dockerfile.dining`) **không** chứa `src/modules/auth` / Google OAuth.
 - Env: [`.env`](.env) shared · [`.env.auth`](.env.auth) · [`.env.dining`](.env.dining)
 - **Kafka practice:** Auth publish `UserCreated` / `UserRoleChanged` → [docs/kafka-practice.md](docs/kafka-practice.md)

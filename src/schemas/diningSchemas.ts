@@ -11,6 +11,17 @@ const quantityUpdate = z.preprocess((v) => {
     return v;
 }, z.coerce.number().int().min(1, "quantity phải là số nguyên >= 1").optional());
 
+const priceCreate = z.preprocess(
+    (v) => (v === "" || v === null || v === undefined ? 0 : v),
+    z.coerce.number().int().min(0, "price phải là số nguyên >= 0")
+);
+
+const priceUpdate = z.preprocess((v) => {
+    if (v === undefined) return undefined;
+    if (v === "" || v === null) return undefined;
+    return v;
+}, z.coerce.number().int().min(0, "price phải là số nguyên >= 0").optional());
+
 const optionalTrimmed = z
     .string()
     .trim()
@@ -35,6 +46,7 @@ export const createTableSchema = z.object({
     shape: z.string().trim().min(1, "shape là bắt buộc"),
     dimensions: optionalTrimmed,
     quantity: quantityCreate,
+    price: priceCreate,
     diningRoomId: z.string().uuid("diningRoomId phải là UUID hợp lệ"),
 });
 
@@ -44,6 +56,7 @@ export const updateTableSchema = z.object({
     shape: z.string().trim().min(1).optional(),
     dimensions: optionalTrimmed,
     quantity: quantityUpdate,
+    price: priceUpdate,
     diningRoomId: z.string().uuid("diningRoomId phải là UUID hợp lệ").optional(),
 });
 
@@ -52,6 +65,7 @@ export const createCabinetSchema = z.object({
     material: z.string().trim().min(1, "material là bắt buộc"),
     dimensions: optionalTrimmed,
     quantity: quantityCreate,
+    price: priceCreate,
     diningRoomId: z.string().uuid("diningRoomId phải là UUID hợp lệ"),
 });
 
@@ -60,6 +74,7 @@ export const updateCabinetSchema = z.object({
     material: z.string().trim().min(1).optional(),
     dimensions: optionalTrimmed,
     quantity: quantityUpdate,
+    price: priceUpdate,
     diningRoomId: z.string().uuid("diningRoomId phải là UUID hợp lệ").optional(),
 });
 
@@ -68,6 +83,7 @@ export const createChairSchema = z.object({
     material: z.string().trim().min(1, "material là bắt buộc"),
     color: optionalTrimmed,
     quantity: quantityCreate,
+    price: priceCreate,
     diningTableId: z.string().uuid("diningTableId phải là UUID hợp lệ"),
 });
 
@@ -76,6 +92,7 @@ export const updateChairSchema = z.object({
     material: z.string().trim().min(1).optional(),
     color: optionalTrimmed,
     quantity: quantityUpdate,
+    price: priceUpdate,
     diningTableId: z.string().uuid("diningTableId phải là UUID hợp lệ").optional(),
 });
 
@@ -83,6 +100,7 @@ export const createAccessorySchema = z.object({
     name: z.string().trim().min(1, "name là bắt buộc"),
     type: z.string().trim().min(1, "type là bắt buộc"),
     quantity: quantityCreate,
+    price: priceCreate,
     diningTableId: z.string().uuid("diningTableId phải là UUID hợp lệ"),
 });
 
@@ -90,5 +108,6 @@ export const updateAccessorySchema = z.object({
     name: z.string().trim().min(1).optional(),
     type: z.string().trim().min(1).optional(),
     quantity: quantityUpdate,
+    price: priceUpdate,
     diningTableId: z.string().uuid("diningTableId phải là UUID hợp lệ").optional(),
 });

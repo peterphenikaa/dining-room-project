@@ -2,6 +2,8 @@
   "extends": "./tsconfig.json",
   "exclude": [
     "src/modules/auth/**",
-    "src/authMain.ts"
+    "src/authMain.ts",
+    "src/modules/payment/**",
+    "src/paymentMain.ts"
   ]
 }

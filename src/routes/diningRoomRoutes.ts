@@ -12,11 +12,11 @@ import { imageUpload } from "../middlewares/imageUpload";
 
 const router = Router();
 const images = makeImageControllers("room");
-
+    
 router.use(authenticate);
 
 router.get("/", getAllRooms);
-router.get("/:id", getRoomById);
+router.get("/:id", getRoomById);    
 
 router.post("/", authorize("admin"), createRoom);
 router.put("/:id", authorize("admin"), updateRoom);

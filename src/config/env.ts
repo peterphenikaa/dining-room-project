@@ -34,6 +34,34 @@ export const authServiceConfig = {
     healthTimeoutMs: envInt("AUTH_HEALTH_TIMEOUT_MS", 2_000),
 };
 
+/** Dining → Payment */
+export const paymentServiceConfig = {
+    url: (process.env.PAYMENT_SERVICE_URL || "http://localhost:3004").replace(/\/$/, ""),
+    proxyTimeoutMs: envInt("PAYMENT_PROXY_TIMEOUT_MS", 10_000),
+    healthTimeoutMs: envInt("PAYMENT_HEALTH_TIMEOUT_MS", 2_000),
+    /** Shared secret: Payment webhook → Dining mark-paid */
+    callbackSecret: process.env.PAYMENT_CALLBACK_SECRET || "phongan-payment-callback-dev",
+};
+
+/** PayOS (Payment service) */
+export const payosConfig = {
+    clientId: process.env.PAYOS_CLIENT_ID || "",
+    apiKey: process.env.PAYOS_API_KEY || "",
+    checksumKey: process.env.PAYOS_CHECKSUM_KEY || "",
+    returnUrl: process.env.PAYOS_RETURN_URL || "http://localhost:5173/orders",
+    cancelUrl: process.env.PAYOS_CANCEL_URL || "http://localhost:5173/orders",
+    /** Dining URL để Payment callback sau webhook */
+    diningInternalUrl: (
+        process.env.DINING_INTERNAL_URL || "http://localhost:3002"
+    ).replace(/\/$/, ""),
+};
+
+export function assertPayosConfigured(): void {
+    if (!payosConfig.clientId) throw new Error("Thiếu PAYOS_CLIENT_ID");
+    if (!payosConfig.apiKey) throw new Error("Thiếu PAYOS_API_KEY");
+    if (!payosConfig.checksumKey) throw new Error("Thiếu PAYOS_CHECKSUM_KEY");
+}
+
 export const dbConfig = {
     host: env("DB_HOST", "localhost"),
     port: envInt("DB_PORT", 3306),
@@ -47,7 +75,7 @@ export const redisConfig = {
     port: envInt("REDIS_PORT", 6379),
 };
 
-/** Kafka (practice domain events) — Auth publish, consumer log */
+/** Kafka (practice domain events) — Auth + Dining order events */
 export const kafkaConfig = {
     enabled: envBool("KAFKA_ENABLED", true),
     brokers: (process.env.KAFKA_BROKERS || "localhost:9092")
@@ -56,6 +84,7 @@ export const kafkaConfig = {
         .filter(Boolean),
     clientId: process.env.KAFKA_CLIENT_ID || "phongan-app",
     authUserTopic: process.env.KAFKA_AUTH_USER_TOPIC || "auth.user.events",
+    orderTopic: process.env.KAFKA_ORDER_TOPIC || "dining.order.events",
     consumerGroup: process.env.KAFKA_CONSUMER_GROUP || "auth-events-logger",
 };
 

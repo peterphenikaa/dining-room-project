@@ -8,6 +8,7 @@ export type TableInput = {
     shape: string;
     dimensions?: string;
     quantity?: number;
+    price?: number;
     diningRoomId: string;
 };
 

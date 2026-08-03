@@ -14,6 +14,7 @@ export class DiningAccessoryService {
         name: string;
         type: string;
         quantity: number;
+        price: number;
         diningTableId: string;
     }) {
         const table = await tableRepository.findOneBy({ id: data.diningTableId });
@@ -23,6 +24,7 @@ export class DiningAccessoryService {
             name: data.name,
             type: data.type,
             quantity: data.quantity,
+            price: data.price,
             diningTable: table,
         });
 
@@ -50,6 +52,7 @@ export class DiningAccessoryService {
             name?: string;
             type?: string;
             quantity?: number;
+            price?: number;
             diningTableId?: string;
         }
     ) {

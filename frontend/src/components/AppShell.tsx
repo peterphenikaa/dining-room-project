@@ -13,6 +13,8 @@ export function AppShell() {
         { to: "/cabinets", label: "Tủ" },
         { to: "/chairs", label: "Ghế" },
         { to: "/accessories", label: "Phụ kiện" },
+        { to: "/cart", label: "Giỏ hàng" },
+        { to: "/orders", label: "Đơn hàng" },
         { to: "/profile", label: "Hồ sơ" },
         ...(isAdmin ? [{ to: "/users", label: "Người dùng" }] : []),
     ];

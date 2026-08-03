@@ -1,0 +1,6 @@
+{
+  "watch": ["src"],
+  "ext": "ts,json",
+  "exec": "npx tsc -p tsconfig.payment.json && node dist/paymentMain.js",
+  "legacyWatch": true
+}

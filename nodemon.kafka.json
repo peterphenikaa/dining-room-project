@@ -1,6 +1,6 @@
 {
   "watch": ["src"],
   "ext": "ts,json",
-  "exec": "npx tsc && node dist/kafkaConsumerMain.js",
+  "exec": "npx tsc -p tsconfig.kafka.json && node dist/kafkaConsumerMain.js",
   "legacyWatch": true
 }

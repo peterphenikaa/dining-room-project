@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/paymentMain.ts",
+    "src/modules/payment/**/*",
+    "src/config/**/*",
+    "src/security/**/*",
+    "src/middlewares/errorHandler.ts",
+    "src/utils/**/*"
+  ]
+}

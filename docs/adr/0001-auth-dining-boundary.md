@@ -127,7 +127,7 @@ Chỉ Auth dùng để cấp access mới. Dining **không** verify refresh.
 
 - Browser → Dining `:3002` → proxy `/api/auth`, `/api/users` → Auth `:3003` (timeout + health)
 - Dining verify JWT qua [`src/security/`](../../src/security/); **không** import `modules/auth`
-- Image Dining (`Dockerfile.dining`) xóa `src/modules/auth` — không còn Google OAuth
+- Image Dining (`docker/Dockerfile.dining`) xóa `src/modules/auth` — không còn Google OAuth
 - Env: `.env` shared · `.env.auth` · `.env.dining`
 - DB: `phongan_db` · `phongan_auth`
 

@@ -1,4 +1,4 @@
-# Kafka practice — Auth domain events
+# Kafka practice — domain events
 
 ## Flow
 
@@ -8,39 +8,36 @@ AuthService.register / Google create user
 UserService.adminUpdate (đổi role)
   → publish UserRoleChanged → cùng topic
 
+OrderController.checkout (sau TX)
+  → publish OrderCreated → topic dining.order.events
+
 kafka-consumer (group auth-events-logger)
-  → log / giả lập notify
+  → log / giả lập notify (auth + order)
 ```
 
-Auth **không** đợi Kafka: publish lỗi chỉ `console.warn` — login vẫn OK.
+Publish lỗi chỉ `console.warn` — API vẫn OK.
 
 ## Chạy
 
 ```bash
-docker compose up -d kafka auth kafka-consumer
-# đợi Kafka ready ~10s
+docker compose up -d kafka auth payment kafka-consumer app
 docker compose logs -f kafka-consumer
 ```
 
-Redpanda expose host `localhost:19092` (Kafka API). Trong compose, app dùng `kafka:9092`.
-
-Đăng ký user mới (FE hoặc curl) → consumer in ra `[notify] Welcome ...`.
-
-Admin đổi role trên `/users` → `[notify] email: user → admin`.
+Checkout đơn → consumer: `[notify] Order ORD-...`.
 
 ## Biến môi trường
 
-| Key | Mặc định Docker |
+| Key | Mặc định |
 |---|---|
 | `KAFKA_BROKERS` | `kafka:9092` |
 | `KAFKA_AUTH_USER_TOPIC` | `auth.user.events` |
+| `KAFKA_ORDER_TOPIC` | `dining.order.events` |
 | `KAFKA_CONSUMER_GROUP` | `auth-events-logger` |
 | `KAFKA_ENABLED` | `true` |
 
-Host machine (ngoài Docker): advertise listener hiện là `kafka:9092` (nội bộ compose). Test từ host qua `docker compose exec`.
-
 ## Học thêm (chưa làm)
 
-- Transactional Outbox (ghi DB + outbox cùng TX, poller publish)
-- Idempotent consumer (dedupe theo `userId` + `occurredAt`)
-- Nhiều consumer group (email vs audit)
+- Transactional Outbox
+- Idempotent consumer
+- Nhiều consumer group

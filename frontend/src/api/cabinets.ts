@@ -7,6 +7,7 @@ export type CabinetInput = {
     material: string;
     dimensions?: string;
     quantity?: number;
+    price?: number;
     diningRoomId: string;
 };
 

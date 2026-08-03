@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/authMain.ts",
+    "src/modules/auth/**/*",
+    "src/config/**/*",
+    "src/security/**/*",
+    "src/middlewares/errorHandler.ts",
+    "src/utils/**/*",
+    "src/messaging/authUserEvents.ts",
+    "src/messaging/authEventPublisher.ts"
+  ]
+}

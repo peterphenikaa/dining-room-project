@@ -7,6 +7,7 @@ export type ChairInput = {
     material: string;
     color?: string;
     quantity?: number;
+    price?: number;
     diningTableId: string;
 };
 

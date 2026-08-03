@@ -66,6 +66,7 @@ export type DiningTable = {
     shape: string;
     dimensions?: string | null;
     quantity: number;
+    price: number;
     diningRoom?: DiningRoom | null;
     diningRoomId?: string;
     imageUrl?: string | null;
@@ -78,6 +79,7 @@ export type DiningCabinet = {
     material: string;
     dimensions?: string | null;
     quantity: number;
+    price: number;
     diningRoom?: DiningRoom | null;
     diningRoomId?: string;
     imageUrl?: string | null;
@@ -90,6 +92,7 @@ export type DiningChair = {
     material: string;
     color?: string | null;
     quantity: number;
+    price: number;
     diningTable?: DiningTable | null;
     diningTableId?: string;
     imageUrl?: string | null;
@@ -101,8 +104,68 @@ export type DiningAccessory = {
     name: string;
     type: string;
     quantity: number;
+    price: number;
     diningTable?: DiningTable | null;
     diningTableId?: string;
     imageUrl?: string | null;
     imageThumbUrl?: string | null;
+};
+
+export type ShopProductType = "table" | "chair" | "cabinet" | "accessory";
+
+export type OrderStatus =
+    | "pending_payment"
+    | "paid"
+    | "cancelled"
+    | "fulfilled";
+
+export type CartItemView = {
+    id: string;
+    productType: ShopProductType;
+    productId: string;
+    quantity: number;
+    productName: string | null;
+    unitPrice: number | null;
+    stock: number | null;
+    lineTotal: number | null;
+    available: boolean;
+};
+
+export type CartView = {
+    id: string;
+    userId: string;
+    items: CartItemView[];
+    totalAmount: number;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type OrderItem = {
+    id: string;
+    productType: ShopProductType;
+    productId: string;
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+    lineTotal: number;
+};
+
+export type Order = {
+    id: string;
+    orderNumber: string;
+    userId: string;
+    status: OrderStatus;
+    totalAmount: number;
+    items?: OrderItem[];
+    payment?: {
+        id: string;
+        status: string;
+        provider: string;
+        amount: number;
+        checkoutUrl: string | null;
+        paidAt: string | null;
+        orderCode?: string | null;
+    } | null;
+    createdAt: string;
+    updatedAt: string;
 };

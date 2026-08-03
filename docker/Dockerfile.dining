@@ -11,8 +11,7 @@ RUN npm install
 
 COPY . .
 
-# Đảm bảo không còn Auth/Google OAuth trong image Dining
-RUN rm -rf src/modules/auth src/authMain.ts \
+RUN rm -rf src/modules/auth src/authMain.ts src/modules/payment src/paymentMain.ts \
   && test ! -e src/modules/auth/services/GoogleAuthService.ts \
   && ! grep -R "GoogleAuthService" src --include='*.ts' \
   && ! grep -R "accounts.google.com" src --include='*.ts'

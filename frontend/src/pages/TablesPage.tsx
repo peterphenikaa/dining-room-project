@@ -3,6 +3,7 @@ import * as tablesApi from "../api/tables";
 import * as roomsApi from "../api/rooms";
 import { deleteEntityImage, uploadEntityImage } from "../api/entityImages";
 import { OPTIONS_LIMIT, PAGE_LIMIT } from "../api/listParams";
+import { AddToCartButton } from "../components/AddToCartButton";
 import { OptionSelect } from "../components/OptionSelect";
 import { RowActions } from "../components/RowActions";
 import {
@@ -15,6 +16,7 @@ import type { DiningRoom, DiningTable } from "../types/api";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { useReloadOnDiningChange } from "../hooks/useReloadOnDiningChange";
 import { getApiErrorMessage } from "../utils/apiError";
+import { formatVnd } from "../utils/formatMoney";
 import { applyCursorPage } from "../utils/cursorPage";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { CursorPager } from "../components/CursorPager";
@@ -27,6 +29,7 @@ const emptyForm = {
     shape: "",
     dimensions: "",
     quantity: "1",
+    price: "0",
     diningRoomId: "",
 };
 
@@ -126,6 +129,7 @@ export function TablesPage() {
             shape: row.shape,
             dimensions: row.dimensions || "",
             quantity: String(row.quantity ?? 1),
+            price: String(row.price ?? 0),
             diningRoomId: row.diningRoom?.id || "",
         });
         setImageFile(null);
@@ -145,6 +149,7 @@ export function TablesPage() {
                 shape: form.shape.trim(),
                 dimensions: form.dimensions.trim() || undefined,
                 quantity: Number(form.quantity),
+                price: Number(form.price),
                 diningRoomId: form.diningRoomId,
             };
             const saved = editingId
@@ -222,8 +227,9 @@ export function TablesPage() {
                                     <th>Chất liệu</th>
                                     <th>Hình</th>
                                     <th>SL</th>
+                                    <th>Giá</th>
                                     <th>Phòng</th>
-                                    {canWrite && <th></th>}
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -240,18 +246,28 @@ export function TablesPage() {
                                         <td>{row.material}</td>
                                         <td>{row.shape}</td>
                                         <td>{row.quantity}</td>
+                                        <td>{formatVnd(row.price ?? 0)}</td>
                                         <td>{row.diningRoom?.name || "—"}</td>
-                                        {canWrite && (
-                                            <RowActions
-                                                onEdit={() => startEdit(row)}
-                                                onDelete={() => setPendingDeleteId(row.id)}
-                                            />
-                                        )}
+                                        <td>
+                                            <div className="row-actions-inline">
+                                                <AddToCartButton
+                                                    productType="table"
+                                                    productId={row.id}
+                                                    disabled={(row.price ?? 0) <= 0 || row.quantity <= 0}
+                                                />
+                                                {canWrite && (
+                                                    <RowActions
+                                                        onEdit={() => startEdit(row)}
+                                                        onDelete={() => setPendingDeleteId(row.id)}
+                                                    />
+                                                )}
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
                                 {!loading && items.length === 0 && (
                                     <tr>
-                                        <td colSpan={canWrite ? 7 : 6}>Chưa có dữ liệu</td>
+                                        <td colSpan={8}>Chưa có dữ liệu</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -307,6 +323,17 @@ export function TablesPage() {
                                 required
                                 allowEmpty={false}
                             />
+                            <label>
+                                Giá (VND)
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step={1000}
+                                    value={form.price}
+                                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                    required
+                                />
+                            </label>
                             <label>
                                 Phòng ăn
                                 <select

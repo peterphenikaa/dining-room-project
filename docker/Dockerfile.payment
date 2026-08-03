@@ -10,8 +10,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-RUN npx tsc
+RUN npx tsc -p tsconfig.payment.json
 
-EXPOSE 3003
+EXPOSE 3004
 
-CMD ["npx", "nodemon", "--config", "nodemon.auth.json"]
+CMD ["npx", "nodemon", "--config", "nodemon.payment.json"]

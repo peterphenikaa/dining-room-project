@@ -1,3 +1,19 @@
+# Build context ignore (dùng chung mọi Dockerfile)
 node_modules
+**/node_modules
+frontend/node_modules
 dist
 .git
+.DS_Store
+
+# FE không vào image backend
+frontend
+
+# Docs / test local
+docs
+*.md
+tests
+
+# Secrets không COPY vào image (runtime dùng env_file compose)
+.env
+.env.*

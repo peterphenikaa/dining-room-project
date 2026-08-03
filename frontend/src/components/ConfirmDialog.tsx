@@ -4,6 +4,8 @@ type ConfirmDialogProps = {
     message: string;
     confirmLabel?: string;
     cancelLabel?: string;
+    /** default danger — dùng primary cho hành động không phá hủy */
+    confirmTone?: "danger" | "primary";
     busy?: boolean;
     onConfirm: () => void;
     onCancel: () => void;
@@ -15,6 +17,7 @@ export function ConfirmDialog({
     message,
     confirmLabel = "Xóa",
     cancelLabel = "Hủy",
+    confirmTone = "danger",
     busy = false,
     onConfirm,
     onCancel,
@@ -36,7 +39,12 @@ export function ConfirmDialog({
                     <button type="button" className="secondary" onClick={onCancel} disabled={busy}>
                         {cancelLabel}
                     </button>
-                    <button type="button" className="danger" onClick={onConfirm} disabled={busy}>
+                    <button
+                        type="button"
+                        className={confirmTone === "primary" ? undefined : "danger"}
+                        onClick={onConfirm}
+                        disabled={busy}
+                    >
                         {busy ? "Đang xử lý..." : confirmLabel}
                     </button>
                 </div>

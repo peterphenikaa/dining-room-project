@@ -1,6 +1,6 @@
 {
   "watch": ["src"],
   "ext": "ts,json",
-  "exec": "npx tsc && node dist/authMain.js",
+  "exec": "npx tsc -p tsconfig.auth.json && node dist/authMain.js",
   "legacyWatch": true
 }
