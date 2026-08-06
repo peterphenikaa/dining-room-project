@@ -46,7 +46,6 @@ export function OrdersPage() {
         void load()
     }, [isAdmin])
 
-    /** PayOS returnUrl ?status=PAID&orderCode=... — hỏi lại PayOS nếu webhook miss */
     useEffect(() => {
         const status = searchParams.get("status")
         const rawCode = searchParams.get("orderCode")
@@ -71,7 +70,6 @@ export function OrdersPage() {
         return () => {
             cancelled = true
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams])
 
     async function handleCancel() {

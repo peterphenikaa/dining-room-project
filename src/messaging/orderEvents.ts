@@ -1,5 +1,6 @@
 export type OrderCreatedEvent = {
     type: "OrderCreated"
+    eventId: string
     orderId: string
     orderNumber: string
     userId: string

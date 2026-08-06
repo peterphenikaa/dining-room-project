@@ -3,7 +3,6 @@ import { z } from "zod"
 import { paymentServiceConfig } from "../config/env"
 import { OrderService } from "../services/OrderService"
 import { PaymentClient } from "../services/PaymentClient"
-import { publishOrderEvent } from "../messaging/orderEventPublisher"
 import { orderIdParamSchema } from "../schemas/orderSchemas"
 import { cursorPaginationQuerySchema } from "../schemas/paginationSchemas"
 import type { AuthRequest } from "../security"
@@ -29,15 +28,6 @@ export const checkout = async (req: AuthRequest, res: Response) => {
         cookie,
     )
 
-    void publishOrderEvent({
-        type: "OrderCreated",
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        userId: order.userId,
-        totalAmount: order.totalAmount,
-        itemCount: order.items?.length ?? 0,
-        occurredAt: new Date().toISOString(),
-    })
 
     return SuccessResponse(res, 201, "Đặt hàng thành công", {
         ...order,
@@ -107,7 +97,6 @@ export const markOrderPaid = async (req: AuthRequest, res: Response) => {
     return SuccessResponse(res, 200, "Đã xác nhận thanh toán", order)
 }
 
-/** User/admin: tạo PayOS checkout URL */
 export const createPayosCheckout = async (req: AuthRequest, res: Response) => {
     const { id } = orderIdParamSchema.parse(req.params)
     const isAdmin = req.user!.role === "admin"
@@ -142,7 +131,6 @@ export const createPayosCheckout = async (req: AuthRequest, res: Response) => {
     })
 }
 
-/** User: hỏi PayOS lại sau return URL (webhook có thể miss khi ngrok tắt) */
 export const syncPayosPayment = async (req: AuthRequest, res: Response) => {
     const { id } = orderIdParamSchema.parse(req.params)
     const isAdmin = req.user!.role === "admin"
@@ -155,7 +143,6 @@ export const syncPayosPayment = async (req: AuthRequest, res: Response) => {
     return SuccessResponse(res, 200, "Đã đồng bộ trạng thái PayOS", refreshed)
 }
 
-/** Return URL PayOS có orderCode — sync đúng payment */
 export const syncPayosByCode = async (req: AuthRequest, res: Response) => {
     const { orderCode } = z
         .object({ orderCode: z.coerce.number().int().positive() })
@@ -172,7 +159,6 @@ const internalMarkPaidSchema = z.object({
     orderId: z.string().uuid(),
 })
 
-/** Payment webhook → Dining (shared secret, không JWT) */
 export const internalMarkPaid = async (req: AuthRequest, res: Response) => {
     const secret = req.headers["x-payment-callback-secret"]
     if (secret !== paymentServiceConfig.callbackSecret) {

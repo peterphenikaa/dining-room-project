@@ -15,9 +15,7 @@ export function getPayOS(): PayOS {
     return client
 }
 
-/** PayOS orderCode: số nguyên dương, unique trong hệ thống merchant */
 export function generatePayosOrderCode(): number {
-    // 9 số cuối ms + 3 số random → ≤ 12 chữ số (an toàn trong Number)
     const head = String(Date.now()).slice(-9)
     const tail = String(Math.floor(Math.random() * 1000)).padStart(3, "0")
     return Number(`${head}${tail}`)

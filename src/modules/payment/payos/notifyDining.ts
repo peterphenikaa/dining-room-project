@@ -1,6 +1,5 @@
 import { paymentServiceConfig, payosConfig } from "../../../config/env"
 
-/** Sau webhook: báo Dining cập nhật order → paid */
 export async function notifyDiningOrderPaid(orderId: string): Promise<void> {
     const url = `${payosConfig.diningInternalUrl}/api/orders/internal/mark-paid`
     try {

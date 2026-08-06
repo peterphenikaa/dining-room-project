@@ -10,8 +10,8 @@ import { Cart } from "./entity/Cart"
 import { CartItem } from "./entity/CartItem"
 import { Order } from "./entity/Order"
 import { OrderItem } from "./entity/OrderItem"
+import { OutboxEvent } from "./entity/OutboxEvent"
 
-/** Dining DB — không còn User / AuthIdentity (Phase 2) */
 export const AppDataSource = new DataSource({
     type: "mysql",
     host: dbConfig.host,
@@ -31,6 +31,7 @@ export const AppDataSource = new DataSource({
         CartItem,
         Order,
         OrderItem,
+        OutboxEvent,
     ],
     migrations: [__dirname + "/migration/**/*{.ts,.js}"],
     subscribers: [],

@@ -38,22 +38,22 @@ async function getProducer(): Promise<Producer | null> {
     return connecting
 }
 
-export async function publishOrderEvent(event: OrderEvent): Promise<void> {
-    try {
-        const p = await getProducer()
-        if (!p) return
-        await p.send({
-            topic: kafkaConfig.orderTopic,
-            messages: [
-                {
-                    key: event.orderId,
-                    value: JSON.stringify(event),
-                    headers: { eventType: event.type },
-                },
-            ],
-        })
-        console.log(`[kafka] published ${event.type} orderId=${event.orderId}`)
-    } catch (err) {
-        console.warn(`[kafka] publish ${event.type} failed:`, err)
+export async function publishOrderEventRaw(topic: string, event: OrderEvent): Promise<void> {
+    const p = await getProducer()
+    if (!p) {
+        throw new Error("Kafka producer unavailable (KAFKA_ENABLED=false hoặc connect fail)")
     }
+    await p.send({
+        topic,
+        messages: [
+            {
+                key: event.orderId,
+                value: JSON.stringify(event),
+                headers: {
+                    eventType: event.type,
+                    eventId: event.eventId || "",
+                },
+            },
+        ],
+    })
 }

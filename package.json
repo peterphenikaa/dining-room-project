@@ -10,8 +10,7 @@
     "migration:run": "tsc -p tsconfig.dining.json && typeorm migration:run -d dist/data-source.js",
     "migration:run:auth": "tsc -p tsconfig.auth.json && typeorm migration:run -d dist/modules/auth/data-source.js",
     "migration:run:payment": "tsc -p tsconfig.payment.json && typeorm migration:run -d dist/modules/payment/data-source.js",
-    "seed:dining": "tsc -p tsconfig.dining.json && node dist/seed/seedDiningData.js",
-    "verify:dining-image": "sh scripts/verify-dining-image.sh"
+    "seed:dining": "tsc -p tsconfig.dining.json && node dist/seed/seedDiningData.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -29,7 +28,6 @@
     "kafkajs": "^2.2.4",
     "multer": "^2.0.2",
     "mysql2": "^3.23.0",
-    "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
     "sharp": "^0.34.3",
     "socket.io": "^4.8.3",

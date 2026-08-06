@@ -4,9 +4,6 @@ import { kafkaConfig } from "./config/env"
 import type { AuthUserEvent } from "./messaging/authUserEvents"
 import type { OrderEvent } from "./messaging/orderEvents"
 
-
-
-
 async function main() {
     if (!kafkaConfig.enabled) {
         console.log("[kafka-consumer] KAFKA_ENABLED=false — thoát")
@@ -59,7 +56,7 @@ async function main() {
                     )
                 } else if (event.type === "OrderCreated") {
                     console.log(
-                        `[notify] Order ${event.orderNumber} user=${event.userId} total=${event.totalAmount} items=${event.itemCount}`,
+                        `[notify] Order ${event.orderNumber} eventId=${(event as OrderEvent).eventId || "-"} user=${event.userId} total=${event.totalAmount} items=${event.itemCount}`,
                     )
                 } else {
                     console.log(`[kafka-consumer] unknown event on ${topic}/${partition}:`, raw)

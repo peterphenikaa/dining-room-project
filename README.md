@@ -86,6 +86,7 @@ PayOS dashboard → webhook URL: `https://<tunnel>/api/payments/payos/webhook`
 ### Ops / khác
 - Compose: `app`, `auth`, `payment`, `worker`, `kafka` (+ consumer), `db`, `redis`, `minio`, `phpmyadmin`
 - Kafka Auth events: [docs/kafka-practice.md](docs/kafka-practice.md)
+- Backlog tối ưu trước feature mới: [docs/optimization-backlog.md](docs/optimization-backlog.md)
 
 ---
 

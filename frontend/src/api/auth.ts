@@ -28,11 +28,6 @@ export async function getMe() {
     return data.data;
 }
 
-export async function refresh() {
-    const { data } = await api.post<ApiSuccess<{ user: AuthUser }>>("/api/auth/refresh");
-    return data.data.user;
-}
-
 export function getGoogleLoginUrl(): string {
     return `${resolveApiUrl()}/api/auth/google`;
 }

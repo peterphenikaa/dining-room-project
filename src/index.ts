@@ -18,6 +18,7 @@ import orderRoutes from "./routes/orderRoutes"
 import { internalMarkPaid } from "./controllers/OrderController"
 import { errorHandler } from "./middlewares/errorHandler"
 import { initIO } from "./realtime/io"
+import { startOutboxRelay } from "./messaging/outboxRelay"
 import { ensureBucket } from "./storage/s3"
 import { parseCorsOrigins } from "./utils/corsOrigins"
 
@@ -150,13 +151,13 @@ AppDataSource.initialize()
         app.use("/api/accessories", diningAccessoryRoutes)
         app.use("/api/cabinets", diningCabinetRoutes)
         app.use("/api/cart", cartRoutes)
-        // Internal callback từ Payment (PayOS webhook) — không JWT
         app.post("/api/orders/internal/mark-paid", internalMarkPaid)
         app.use("/api/orders", orderRoutes)
 
         app.use(errorHandler)
 
         initIO(server, corsOrigin)
+        startOutboxRelay()
 
         const authStatus = await checkServiceHealth(
             authServiceConfig.url,

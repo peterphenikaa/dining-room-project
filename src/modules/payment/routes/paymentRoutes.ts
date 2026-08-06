@@ -16,7 +16,6 @@ import { authenticate, authorize } from "../../../security"
 
 const router = Router()
 
-/** Public webhook — trước authenticate */
 router.post("/payos/webhook", payosWebhook)
 
 router.use(authenticate)

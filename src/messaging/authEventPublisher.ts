@@ -38,7 +38,6 @@ async function getProducer(): Promise<Producer | null> {
     return connecting;
 }
 
-/** Fire-and-forget: lỗi Kafka không làm fail request Auth (practice mode). */
 export async function publishAuthUserEvent(event: AuthUserEvent): Promise<void> {
     try {
         const p = await getProducer();
