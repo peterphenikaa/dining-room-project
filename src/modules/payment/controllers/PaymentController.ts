@@ -54,9 +54,16 @@ export const markPaidByOrder = async (req: AuthRequest, res: Response) => {
 
 export const cancelByOrder = async (req: AuthRequest, res: Response) => {
     const { orderId } = orderIdParamSchema.parse(req.params)
-    const payment = await PaymentService.cancelByOrder(orderId)
+
+    const payment = await PaymentService.getByOrderId(orderId)
     if (!payment) throw new AppError("Không tìm thấy payment", 404)
-    return SuccessResponse(res, 200, "Đã hủy payment", payment)
+
+    if (req.user!.role !== "admin" && payment.userId !== req.user!.id) {
+        throw new AppError("Không có quyền hủy payment này", 403)
+    }
+
+    const cancelled = await PaymentService.cancelByOrder(orderId)
+    return SuccessResponse(res, 200, "Đã hủy payment", cancelled)
 }
 
 export const createPayosCheckout = async (req: AuthRequest, res: Response) => {
